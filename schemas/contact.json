@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Contact",
+  "description": "A resolved contact with profile, relationship state, and recommended next step.",
+  "type": "object",
+  "properties": {
+    "id": { "type": ["string", "null"] },
+    "name": { "type": ["string", "null"] },
+    "identifiers": {
+      "type": "object",
+      "properties": {
+        "emails": { "type": "array", "items": { "type": "string" } },
+        "linkedin_url": { "type": ["string", "null"] },
+        "phones": { "type": "array", "items": { "type": "string" } },
+        "handles": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "role": { "type": ["string", "null"] },
+        "headline": { "type": ["string", "null"] },
+        "about": { "type": ["string", "null"] },
+        "location": { "type": ["string", "null"] },
+        "country": { "type": ["string", "null"] },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "profiles": {
+          "type": "object",
+          "properties": {
+            "linkedin": { "type": ["string", "null"] },
+            "github": { "type": ["string", "null"] },
+            "x": { "type": ["string", "null"] },
+            "website": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "company": {
+      "type": ["object", "null"],
+      "properties": {
+        "name": { "type": ["string", "null"] },
+        "domain": { "type": ["string", "null"] }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "properties": {
+        "summary": { "type": "string" },
+        "stage": { "type": ["string", "null"] },
+        "last_interaction_at": { "type": ["string", "null"] }
+      }
+    },
+    "next": {
+      "type": "object",
+      "properties": {
+        "action": { "type": "string" },
+        "due": { "type": ["string", "null"] },
+        "owner": { "type": ["string", "null"] }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "Map of field path → {source, timestamp, confidence, kind}. source is one of: enrichment, web, model, user, import. kind is fact or inference."
+    }
+  }
+}

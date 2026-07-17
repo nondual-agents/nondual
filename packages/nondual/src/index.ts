@@ -1,3 +1,2 @@
-// Nondual SDK — Phase 2
-// Full implementation ships in Phase 2.
-export {};
+export { Nondual, NondualError } from './client.js';
+export type { NondualOptions, ResolveInput, RecordInput, FollowupInput, FollowupPatch } from './client.js';
