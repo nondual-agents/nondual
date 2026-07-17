@@ -36,14 +36,16 @@ Add to your MCP config:
 {
   "mcpServers": {
     "nondual": {
-      "url": "https://mcp.nondual.cloud",
-      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+      "url": "https://mcp.nondual.cloud/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
     }
   }
 }
 ```
 
-Four tools available immediately: `contacts_resolve`, `contacts_context`, `contacts_record`, `contacts_followup`.
+Both `https://mcp.nondual.cloud/mcp` and `https://mcp.nondual.cloud` are accepted.
 
 ---
 
