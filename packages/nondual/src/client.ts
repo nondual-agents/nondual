@@ -25,6 +25,7 @@ export interface RecordInput {
   direction: 'outbound' | 'inbound';
   occurred_at?: string;      // ISO 8601; defaults to now
   summary: string;
+  details?: string;          // full content — email body, transcript, notes
   agent?: string;
   agent_user?: string;
 }

@@ -121,19 +121,29 @@ async function cmdContext(identifier: string): Promise<void> {
 }
 
 async function cmdRecord(args: string[]): Promise<void> {
-  // nondual record <email> --channel email --direction outbound --summary "..." [--agent name]
+  // nondual record <email> --channel email --direction outbound --summary "..." [--details "..." | --details-file path] [--agent name]
   const contact = args[0];
-  if (!contact) die('usage: nondual record <email> --channel <channel> --direction <inbound|outbound> --summary "<text>"');
+  if (!contact) die('usage: nondual record <email> --channel <channel> --direction <inbound|outbound> --summary "<text>" [--details "<text>" | --details-file <path>]');
   const flags = parseFlags(args.slice(1));
   if (!flags['channel']) die('--channel required');
   if (!flags['direction']) die('--direction required (inbound|outbound)');
   if (!flags['summary']) die('--summary required');
+
+  let details: string | undefined;
+  if (flags['details-file']) {
+    const { readFileSync } = await import('fs');
+    details = readFileSync(flags['details-file']!, 'utf8');
+  } else if (flags['details']) {
+    details = flags['details'];
+  }
+
   const client = getClient();
   await client.record({
     contact,
     channel: flags['channel']!,
     direction: flags['direction'] as 'inbound' | 'outbound',
     summary: flags['summary']!,
+    details,
     occurred_at: flags['at'],
   });
   console.log('Recorded.');

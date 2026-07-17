@@ -122,7 +122,21 @@ npx nondual record dario@anthropic.com \
   --summary "Sent intro about partnership opportunities" \
   --agent my-sales-agent
 
-# Recorded interaction for dario@anthropic.com
+# With full email body inline
+npx nondual record dario@anthropic.com \
+  --channel email \
+  --direction outbound \
+  --summary "Sent intro about partnership opportunities" \
+  --details "Hi Dario, I wanted to reach out about..." \
+  --agent my-sales-agent
+
+# Load body from a file (email export, transcript, meeting notes)
+npx nondual record dario@anthropic.com \
+  --channel email \
+  --direction outbound \
+  --summary "Sent intro about partnership opportunities" \
+  --details-file ./email-body.txt \
+  --agent my-sales-agent
 ```
 
 Options:
@@ -131,7 +145,9 @@ Options:
 |---|---|---|---|
 | `--channel` | yes | `email` `call` `linkedin` `slack` `meeting` `sms` `other` | Communication channel |
 | `--direction` | yes | `inbound` `outbound` | Who initiated |
-| `--summary` | yes | string | What happened |
+| `--summary` | yes | string | One-sentence description of what happened |
+| `--details` | no | string | Full content — email body, transcript, notes. No length limit. |
+| `--details-file` | no | path | File whose contents become `details` (email export, transcript, etc.) |
 | `--agent` | no | string | Agent name (defaults to `cli`) |
 
 ### `nondual followup <email>`
@@ -216,6 +232,7 @@ await nd.record({
   channel: 'email',
   direction: 'outbound',
   summary: 'Sent intro about partnership opportunities',
+  details: 'Hi Dario, I wanted to reach out...',  // optional — full body
 }, { agent: 'sales-bot' });
 ```
 
