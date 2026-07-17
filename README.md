@@ -174,13 +174,14 @@ Options:
 
 ### `nondual whoami`
 
-Show your current API key and workspace info.
+Show your current API key and the source it came from.
 
 ```bash
 npx nondual whoami
 
-# key        nd_live_xxxxxxxxxxxx
-# workspace  ws_xxxxxxxxxxxx
+# Email:  you@example.com
+# Key:    nd_12cb94...
+# Source: ~/.nondual/config.json
 ```
 
 ---
@@ -218,10 +219,12 @@ const { context } = await nd.context(
   { agent: 'research-bot' },
 );
 
-console.log(context.summary);            // "2 interactions from your agents"
+console.log(context.relationship_summary);   // "2 interactions from your agents"
 console.log(context.recent_interactions);
-// [{ agent, channel, ts, summary }, ...]
-console.log(context.next.action);
+// [{ channel, occurred_at, summary, details }, ...]
+console.log(context.open_followups);
+// [{ id, action, due }, ...]
+console.log(context.recommended_next_action);
 ```
 
 ### `nd.record(input, options?)`
@@ -258,9 +261,9 @@ Auth: `Authorization: Bearer YOUR_API_KEY`
 
 ```bash
 curl -s -X POST https://api.nondual.cloud/v1/resolve \
-  -H "Authorization: Bearer $NONDUAL_API_KEY" \
+  -H "Authorization: Bearer ***" \
   -H "Content-Type: application/json" \
-  -d '{"email": "dario@anthropic.com"}'
+  -d '{"contact": "dario@anthropic.com"}'
 ```
 
 Response:
@@ -268,9 +271,14 @@ Response:
 ```json
 {
   "contact": {
-    "id": "c_...",
+    "id": "contact_...",
     "name": "Dario Amodei",
-    "identifiers": { "email": "dario@anthropic.com", "linkedin_url": "..." },
+    "identifiers": {
+      "emails": ["dario@anthropic.com"],
+      "linkedin_url": "https://linkedin.com/in/darioamodei",
+      "phones": [],
+      "handles": []
+    },
     "profile": { "role": "Co-Founder & CEO", "about": "...", "location": "..." },
     "company": { "name": "Anthropic", "domain": "anthropic.com" },
     "next": { "action": "Reach out via LinkedIn..." }
