@@ -151,11 +151,77 @@ async function cmdFollowup(args: string[]): Promise<void> {
 }
 
 async function cmdWhoami(): Promise<void> {
-  const { apiKey, email } = readConfig();
+  const cfg = readConfig();
+  const apiKey = cfg.apiKey ?? process.env['NONDUAL_API_KEY'];
+  const email = cfg.email;
   if (!apiKey) die('Not initialised. Run: nondual init');
   console.log(`Email:  ${email ?? '(unknown)'}`);
   console.log(`Key:    ${apiKey.slice(0, 8)}...`);
   console.log(`Config: ${CONFIG_PATH}`);
+}
+
+// ─── Search ────────────────────────────────────────────────────────────────────
+
+async function cmdSearch(query: string): Promise<void> {
+  if (!query) die('Usage: nondual search <query>');
+  const client = getClient();
+  const data = await client.searchContacts(query);
+  if (isJsonFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
+  const contacts = (data as any).contacts ?? [];
+  if (!contacts.length) { console.log('No contacts found.'); return; }
+  console.log(`\nFound ${contacts.length} contact(s):\n`);
+  for (const c of contacts) {
+    const email = c.identifiers?.emails?.[0] ?? '—';
+    const role = c.profile?.role ? ` · ${c.profile.role}` : '';
+    const co = c.company?.name ? ` @ ${c.company.name}` : '';
+    console.log(`  ${c.name ?? '(unnamed)'}${role}${co}  <${email}>`);
+  }
+  console.log('');
+}
+
+// ─── Import ────────────────────────────────────────────────────────────────────
+
+async function cmdImport(filePath: string): Promise<void> {
+  if (!filePath) die('Usage: nondual import <file.csv|file.jsonl>');
+  if (!fs.existsSync(filePath)) die(`File not found: ${filePath}`);
+
+  const content = fs.readFileSync(filePath, 'utf8').trim();
+  const ext = path.extname(filePath).toLowerCase();
+  let rows: Record<string, string>[] = [];
+
+  if (ext === '.jsonl' || ext === '.ndjson') {
+    rows = content.split('\n').filter(Boolean).map(l => JSON.parse(l));
+  } else if (ext === '.csv') {
+    const lines = content.split('\n');
+    const headers = (lines[0] ?? '').split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    rows = lines.slice(1).filter(Boolean).map(line => {
+      const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => { if (h && vals[i] !== undefined) row[h] = vals[i]!; });
+      return row;
+    });
+  } else {
+    die('Unsupported format. Use .csv or .jsonl');
+  }
+
+  if (!rows.length) die('No rows found in file');
+  console.log(`Importing ${rows.length} row(s) from ${path.basename(filePath)}...`);
+
+  const client = getClient();
+  const result = await client.importContacts(rows);
+  if (isJsonFlag()) { console.log(JSON.stringify(result, null, 2)); return; }
+  const imp = (result as any).imported ?? {};
+  console.log(`\n✓ Import complete`);
+  console.log(`  Contacts created: ${imp.contacts_created ?? 0}`);
+  console.log(`  Contacts updated: ${imp.contacts_updated ?? 0}`);
+  console.log(`  Interactions:     ${imp.interactions_created ?? 0}`);
+  console.log(`  Follow-ups:       ${imp.followups_created ?? 0}`);
+  const errs = (result as any).errors ?? [];
+  if (errs.length) {
+    console.log(`  Errors (first ${errs.length}):`);
+    errs.slice(0, 5).forEach((e: any) => console.log(`    row ${e.row}: ${e.error}`));
+  }
+  console.log('');
 }
 
 // ─── Flag parser ──────────────────────────────────────────────────────────────
@@ -184,17 +250,21 @@ async function main(): Promise<void> {
       case 'context':  await cmdContext(rest[0] ?? ''); break;
       case 'record':   await cmdRecord(rest); break;
       case 'followup': await cmdFollowup(rest); break;
+      case 'search':   await cmdSearch(rest[0] ?? ''); break;
+      case 'import':   await cmdImport(rest[0] ?? ''); break;
       case 'whoami':   await cmdWhoami(); break;
       default:
         console.log(`nondual — Your agents' system of record for every contact, conversation and next step.
 
 Usage:
   nondual init                           Set up your API key
-  nondual resolve <email>                Resolve a contact
-  nondual context <email>                Get relationship context
+  nondual resolve <email|linkedin_url>   Resolve a contact to a full profile
+  nondual context <email>                Get relationship context + next steps
   nondual record <email> --channel email --direction outbound --summary "..."
   nondual followup <email> --action "..." [--due 2026-08-01]
-  nondual whoami                         Show current key
+  nondual search <query>                 Search contacts by name, company, email
+  nondual import <file.csv|file.jsonl>   Bulk import contacts from CSV or JSONL
+  nondual whoami                         Show current key and email
 
 Flags:
   --json    Machine-readable JSON output

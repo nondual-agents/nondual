@@ -131,6 +131,16 @@ export class Nondual {
     return this.request('GET', `/contacts/${id}`);
   }
 
+  async searchContacts(query: string, params?: { limit?: number }): Promise<any> {
+    const qs = new URLSearchParams({ q: query });
+    if (params?.limit) qs.set('limit', String(params.limit));
+    return this.request('GET', `/contacts/search?${qs}`);
+  }
+
+  async importContacts(rows: Record<string, unknown>[]): Promise<any> {
+    return this.request('POST', '/imports', { rows });
+  }
+
   // ─── keys ─────────────────────────────────────────────────────────────────
   static async createKey(email: string, baseUrl = DEFAULT_BASE_URL): Promise<any> {
     const res = await fetch(`${baseUrl}/keys`, {
