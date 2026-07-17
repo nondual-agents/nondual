@@ -27,7 +27,8 @@ function writeConfig(cfg: { apiKey?: string; email?: string }): void {
 
 function getClient(): Nondual {
   const cfg = readConfig();
-  const key = cfg.apiKey ?? process.env['NONDUAL_API_KEY'];
+  // env var takes precedence over stored config — lets users override a stale stored key
+  const key = process.env['NONDUAL_API_KEY'] ?? cfg.apiKey;
   return new Nondual({ apiKey: key, baseUrl: BASE_URL,
     agent: process.env['NONDUAL_AGENT'],
     agentUser: process.env['NONDUAL_AGENT_USER'],
@@ -162,12 +163,14 @@ async function cmdFollowup(args: string[]): Promise<void> {
 
 async function cmdWhoami(): Promise<void> {
   const cfg = readConfig();
-  const apiKey = cfg.apiKey ?? process.env['NONDUAL_API_KEY'];
+  const envKey = process.env['NONDUAL_API_KEY'];
+  const apiKey = envKey ?? cfg.apiKey;
   const email = cfg.email;
   if (!apiKey) die('Not initialised. Run: nondual init');
+  const source = envKey ? 'NONDUAL_API_KEY env var' : CONFIG_PATH;
   console.log(`Email:  ${email ?? '(unknown)'}`);
   console.log(`Key:    ${apiKey.slice(0, 8)}...`);
-  console.log(`Config: ${CONFIG_PATH}`);
+  console.log(`Source: ${source}`);
 }
 
 // ─── Search ────────────────────────────────────────────────────────────────────

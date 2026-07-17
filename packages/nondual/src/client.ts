@@ -113,6 +113,11 @@ export class Nondual {
     return this.request('POST', '/followups', input, opts.agent, opts.agentUser);
   }
 
+  /** Alias for createFollowup — matches the documented method name */
+  async followup(input: FollowupInput, opts: { agent?: string; agentUser?: string } = {}): Promise<any> {
+    return this.createFollowup(input, opts);
+  }
+
   async listFollowups(params?: { status?: string; contact?: string }): Promise<any> {
     const q = new URLSearchParams(params as any).toString();
     return this.request('GET', `/followups${q ? `?${q}` : ''}`);
