@@ -1,0 +1,28 @@
+{
+  "name": "nondual",
+  "version": "0.1.0",
+  "description": "Your agents' system of record for every contact, conversation and next step.",
+  "main": "dist/index.js",
+  "bin": {
+    "nondual": "dist/bin/nondual.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo 'no tests yet'",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["crm", "contacts", "ai-agents", "mcp", "relationship-intelligence"],
+  "author": "Nondual",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nondual-agents/nondual.git",
+    "directory": "packages/nondual"
+  },
+  "homepage": "https://nondual.cloud",
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0"
+  }
+}
