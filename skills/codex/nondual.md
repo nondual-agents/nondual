@@ -34,7 +34,7 @@ export NONDUAL_API_KEY=$(curl -s -X POST https://api.nondual.cloud/v1/keys \
 
 ## Required pattern
 
-Always run the full loop — never just resolve:
+Always run the full loop — never just get contact info:
 
 ```
 get_contact_info → record_contact_interaction → list_open_followups

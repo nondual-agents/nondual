@@ -13,7 +13,7 @@ Give any agent a memory for the people it works with. One install. No forms. No 
 
 ```bash
 npx nondual init                                    # store your API key
-npx nondual get-contact-info dario@anthropic.com   # resolve a contact
+npx nondual get-contact-info dario@anthropic.com   # get contact information
 ```
 
 Get a key:
