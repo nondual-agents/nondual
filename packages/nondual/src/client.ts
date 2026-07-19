@@ -1,5 +1,5 @@
 /**
- * Nondual SDK client.
+ * Nondual SDK client — v0.3.0
  * Your agents' system of record for every contact, conversation and next step.
  */
 
@@ -12,39 +12,41 @@ export interface NondualOptions {
   agentUser?: string;
 }
 
-export interface ResolveInput {
-  email?: string;
-  linkedin_url?: string;
-  phone?: string;
-  handle?: string;
+// ─── V2 input types ───────────────────────────────────────────────────────────
+
+export interface GetContactInfoInput {
+  contact: string;  // email, LinkedIn URL, phone number, or @handle
+  enrich?: boolean; // default true — set false for a fast workspace-only lookup
 }
 
-export interface RecordInput {
-  contact: string;           // email or linkedin_url
-  channel: string;           // email | linkedin | slack | call | meeting | sms | other
-  direction: 'outbound' | 'inbound';
-  occurred_at?: string;      // ISO 8601; defaults to now
-  summary: string;
-  details?: string;          // full content — email body, transcript, notes
-  agent?: string;
-  agent_user?: string;
+export interface RecordContactInteractionInput {
+  contact: string;  // email, LinkedIn URL, phone number, or @handle
+  channel: 'email' | 'linkedin' | 'slack' | 'call' | 'meeting' | 'sms' | 'other';
+  direction: 'outbound' | 'inbound' | 'unknown';
+  summary: string;  // one sentence
+  details?: string; // full content — email body, transcript, notes. No length limit.
+  occurred_at?: string; // ISO 8601; defaults to now
+  participants?: string[];
+  source?: { platform?: string; external_id?: string };
+  recorded_by?: { agent?: string; user?: string };
+  followup_action?: string;   // create a followup in the same call
+  followup_due?: string;      // ISO 8601 date
+  followup_agent?: string;    // who owns the followup
+  complete_followups?: string[] | 'all'; // followup IDs to complete, or 'all'
+  do_not_disturb?: boolean;   // set or clear the do-not-disturb flag
 }
 
-export interface FollowupInput {
-  contact: string;           // email or linkedin_url
-  action: string;
-  due?: string;              // ISO 8601
-  owner?: string;
+export interface ListOpenFollowupsInput {
+  due_before?: string; // ISO 8601 date
+  owner?: string;      // filter by owner (agent name or id)
+  company?: string;    // filter by company domain (exact match)
 }
 
-export interface FollowupPatch {
-  status?: 'open' | 'done';
-  action?: string;
-  due?: string;
-  owner?: string;
+export interface GetCompanyActivityInput {
+  domain: string; // e.g. "acme.com" — exact match, no subdomains
 }
 
-// ─── Low-level fetch wrapper ──────────────────────────────────────────────────
+// ─── Error ────────────────────────────────────────────────────────────────────
 
 export class NondualError extends Error {
   constructor(
@@ -56,6 +58,8 @@ export class NondualError extends Error {
     this.name = 'NondualError';
   }
 }
+
+// ─── Client ───────────────────────────────────────────────────────────────────
 
 export class Nondual {
   private readonly apiKey: string | undefined;
@@ -80,7 +84,13 @@ export class Nondual {
     return h;
   }
 
-  private async request<T>(method: string, path: string, body?: unknown, agent?: string, agentUser?: string): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    agent?: string,
+    agentUser?: string,
+  ): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method,
       headers: this.headers(agent, agentUser),
@@ -93,45 +103,48 @@ export class Nondual {
     return json as T;
   }
 
-  // ─── contacts.resolve ──────────────────────────────────────────────────────
-  async resolve(input: ResolveInput, opts: { agent?: string; agentUser?: string } = {}): Promise<any> {
-    return this.request('POST', '/resolve', input, opts.agent, opts.agentUser);
+  // ─── get_contact_info ──────────────────────────────────────────────────────
+
+  /** Get the full contact profile: name, role, company, relationship summary, recent interactions, open followups, recommended next action. */
+  async getContactInfo(
+    input: GetContactInfoInput,
+    opts: { agent?: string; agentUser?: string } = {},
+  ): Promise<any> {
+    return this.request('POST', '/get-contact-info', input, opts.agent, opts.agentUser);
   }
 
-  // ─── contacts.context ─────────────────────────────────────────────────────
-  async context(input: { contact: string; purpose?: string }, opts: { agent?: string; agentUser?: string } = {}): Promise<any> {
-    return this.request('POST', '/context', input, opts.agent, opts.agentUser);
+  // ─── record_contact_interaction ───────────────────────────────────────────
+
+  /** Record an interaction. Optionally create a followup or complete existing ones in the same call. */
+  async recordContactInteraction(
+    input: RecordContactInteractionInput,
+    opts: { agent?: string; agentUser?: string } = {},
+  ): Promise<any> {
+    return this.request('POST', '/record-contact-interaction', input, opts.agent, opts.agentUser);
   }
 
-  // ─── interactions.record ──────────────────────────────────────────────────
-  async record(input: RecordInput, opts: { agent?: string; agentUser?: string } = {}): Promise<any> {
-    return this.request('POST', '/interactions', input, opts.agent, opts.agentUser);
+  // ─── list_open_followups ──────────────────────────────────────────────────
+
+  /** List open followups with contact snippets. Filter by due date, owner, or company domain. */
+  async listOpenFollowups(
+    params?: ListOpenFollowupsInput,
+    opts: { agent?: string; agentUser?: string } = {},
+  ): Promise<any> {
+    const q = params ? new URLSearchParams(params as any).toString() : '';
+    return this.request('GET', `/list-open-followups${q ? `?${q}` : ''}`, undefined, opts.agent, opts.agentUser);
   }
 
-  // ─── followups ────────────────────────────────────────────────────────────
-  async createFollowup(input: FollowupInput, opts: { agent?: string; agentUser?: string } = {}): Promise<any> {
-    return this.request('POST', '/followups', input, opts.agent, opts.agentUser);
+  // ─── get_company_activity ─────────────────────────────────────────────────
+
+  /** Get all contacts and recent interactions for a company domain. Strict domain match. No enrichment. */
+  async getCompanyActivity(
+    input: GetCompanyActivityInput,
+    opts: { agent?: string; agentUser?: string } = {},
+  ): Promise<any> {
+    return this.request('GET', `/get-company-activity?domain=${encodeURIComponent(input.domain)}`, undefined, opts.agent, opts.agentUser);
   }
 
-  /** Alias for createFollowup — matches the documented method name */
-  async followup(input: FollowupInput, opts: { agent?: string; agentUser?: string } = {}): Promise<any> {
-    return this.createFollowup(input, opts);
-  }
-
-  async listFollowups(params?: { status?: string; contact?: string }): Promise<any> {
-    const q = new URLSearchParams(params as any).toString();
-    return this.request('GET', `/followups${q ? `?${q}` : ''}`);
-  }
-
-  async completeFollowup(id: string, patch: FollowupPatch = {}): Promise<any> {
-    return this.request('PATCH', `/followups/${id}`, { status: 'done', ...patch });
-  }
-
-  // ─── contacts ─────────────────────────────────────────────────────────────
-  async listContacts(params?: { limit?: number; offset?: number }): Promise<any> {
-    const q = new URLSearchParams(params as any).toString();
-    return this.request('GET', `/contacts${q ? `?${q}` : ''}`);
-  }
+  // ─── contacts (dashboard utility — not agent-facing) ──────────────────────
 
   async getContact(id: string): Promise<any> {
     return this.request('GET', `/contacts/${id}`);
@@ -148,6 +161,7 @@ export class Nondual {
   }
 
   // ─── keys ─────────────────────────────────────────────────────────────────
+
   static async createKey(email: string, baseUrl = DEFAULT_BASE_URL): Promise<any> {
     const res = await fetch(`${baseUrl}/keys`, {
       method: 'POST',

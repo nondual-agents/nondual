@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * nondual CLI
+ * nondual CLI — v0.3.0
  * Your agents' system of record for every contact, conversation and next step.
  */
 
@@ -27,21 +27,23 @@ function writeConfig(cfg: { apiKey?: string; email?: string }): void {
 
 function getClient(): Nondual {
   const cfg = readConfig();
-  // env var takes precedence over stored config — lets users override a stale stored key
   const key = process.env['NONDUAL_API_KEY'] ?? cfg.apiKey;
-  return new Nondual({ apiKey: key, baseUrl: BASE_URL,
+  return new Nondual({
+    apiKey: key,
+    baseUrl: BASE_URL,
     agent: process.env['NONDUAL_AGENT'],
     agentUser: process.env['NONDUAL_AGENT_USER'],
   });
 }
 
-// ─── Output ───────────────────────────────────────────────────────────────────
+// ─── Output helpers ───────────────────────────────────────────────────────────
 
 function isJsonFlag(): boolean { return process.argv.includes('--json'); }
 
 function printContact(contact: any): void {
   if (isJsonFlag()) { console.log(JSON.stringify(contact, null, 2)); return; }
   console.log(`\nName:     ${contact.name ?? '—'}`);
+  if (contact.do_not_disturb) console.log('Status:   ⛔ DO NOT DISTURB');
   if (contact.profile?.role) console.log(`Role:     ${contact.profile.role}`);
   if (contact.company?.name) console.log(`Company:  ${contact.company.name}`);
   if (contact.profile?.location) console.log(`Location: ${contact.profile.location}`);
@@ -51,27 +53,27 @@ function printContact(contact: any): void {
   if (contact.profile?.about) console.log(`\n${contact.profile.about}`);
   if (contact.relationship?.summary) console.log(`\nRelationship: ${contact.relationship.summary}`);
   if (contact.next?.action) console.log(`Next:     ${contact.next.action}`);
-  if (contact._demo) console.log('\n(demo — sign up for a key: https://nondual.cloud)');
   console.log('');
 }
 
-function printContext(ctx: any): void {
-  if (isJsonFlag()) { console.log(JSON.stringify(ctx, null, 2)); return; }
-  if (ctx.profile) printContact(ctx.profile);
-  if (ctx.relationship?.summary) console.log(`Relationship: ${ctx.relationship.summary}`);
-  if (ctx.recent_interactions?.length) {
+function printGetContactInfo(res: any): void {
+  if (isJsonFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
+  if (res.contact) printContact(res.contact);
+  if (res.relationship_summary) console.log(`Relationship: ${res.relationship_summary}`);
+  if (res.recent_interactions?.length) {
     console.log('\nRecent interactions:');
-    for (const i of ctx.recent_interactions) {
+    for (const i of res.recent_interactions) {
       console.log(`  [${i.occurred_at?.slice(0, 10) ?? '?'}] ${i.recorded_by?.agent ?? 'unknown'} — ${i.summary}`);
     }
   }
-  if (ctx.open_followups?.length) {
+  if (res.open_followups?.length) {
     console.log('\nOpen followups:');
-    for (const f of ctx.open_followups) {
+    for (const f of res.open_followups) {
       console.log(`  ${f.action}${f.due ? ` (due ${f.due.slice(0, 10)})` : ''}`);
     }
   }
-  if (ctx.next?.action) console.log(`\nNext: ${ctx.next.action}`);
+  if (res.recommended_next_action) console.log(`\nRecommended: ${res.recommended_next_action}`);
+  if (!res.enriched) console.log('(workspace-only — no enrichment ran)');
   console.log('');
 }
 
@@ -105,29 +107,20 @@ async function cmdInit(): Promise<void> {
   console.log('⭐ Star the repo: https://github.com/nondual-agents/nondual');
 }
 
-async function cmdResolve(identifier: string): Promise<void> {
-  if (!identifier) die('usage: nondual resolve <email|linkedin_url>');
+async function cmdGetContactInfo(identifier: string, flags: Record<string, string | undefined>): Promise<void> {
+  if (!identifier) die('usage: nondual get-contact-info <email|linkedin_url|phone|@handle>');
   const client = getClient();
-  const input = identifier.includes('linkedin.com') ? { linkedin_url: identifier } : { email: identifier };
-  console.error('Resolving...');
-  const res = await client.resolve(input) as any;
-  printContact(res.contact ?? res);
-}
-
-async function cmdContext(identifier: string): Promise<void> {
-  if (!identifier) die('usage: nondual context <email|linkedin_url>');
-  const client = getClient();
-  const res = await client.context({ contact: identifier }) as any;
-  printContext(res.context ?? res);
+  const enrich = flags['enrich'] !== 'false';
+  console.error('Fetching contact info...');
+  const res = await client.getContactInfo({ contact: identifier, enrich });
+  printGetContactInfo(res);
 }
 
 async function cmdRecord(args: string[]): Promise<void> {
-  // nondual record <email> --channel email --direction outbound --summary "..." [--details "..." | --details-file path] [--agent name]
   const contact = args[0];
-  if (!contact) die('usage: nondual record <email> --channel <channel> --direction <inbound|outbound> --summary "<text>" [--details "<text>" | --details-file <path>]');
+  if (!contact) die('usage: nondual record <email> --channel email --direction outbound --summary "..." [--details "..." | --details-file path] [--followup "..." --due date] [--complete <id|all>]');
   const flags = parseFlags(args.slice(1));
   if (!flags['channel']) die('--channel required');
-  if (!flags['direction']) die('--direction required (inbound|outbound)');
   if (!flags['summary']) die('--summary required');
 
   let details: string | undefined;
@@ -138,27 +131,71 @@ async function cmdRecord(args: string[]): Promise<void> {
     details = flags['details'];
   }
 
+  const completeRaw = flags['complete'];
+  const completeFollowups = completeRaw === 'all' ? 'all'
+    : completeRaw ? completeRaw.split(',').map(s => s.trim())
+    : undefined;
+
   const client = getClient();
-  await client.record({
+  const res = await client.recordContactInteraction({
     contact,
-    channel: flags['channel']!,
-    direction: flags['direction'] as 'inbound' | 'outbound',
+    channel: flags['channel']! as any,
+    direction: (flags['direction'] ?? 'outbound') as any,
     summary: flags['summary']!,
     details,
     occurred_at: flags['at'],
-  });
-  console.log('Recorded.');
+    followup_action: flags['followup'],
+    followup_due: flags['due'],
+    followup_agent: flags['followup-agent'],
+    complete_followups: completeFollowups,
+    do_not_disturb: flags['dnd'] !== undefined ? flags['dnd'] !== 'false' : undefined,
+  }) as any;
+
+  if (isJsonFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
+  console.log(`Interaction recorded: ${res.interaction?.id ?? 'ok'}`);
+  if (res.followup_created) console.log(`Followup created:     ${res.followup_created.id}`);
+  if (res.followups_completed?.length) console.log(`Followups completed:  ${res.followups_completed.join(', ')}`);
+  if (res.contact_created) console.log(`Contact created (thin)`);
 }
 
-async function cmdFollowup(args: string[]): Promise<void> {
-  const contact = args[0];
-  if (!contact) die('usage: nondual followup <email> --action "<text>" [--due <date>]');
-  const flags = parseFlags(args.slice(1));
-  if (!flags['action']) die('--action required');
+async function cmdListFollowups(flags: Record<string, string | undefined>): Promise<void> {
   const client = getClient();
-  const res = await client.createFollowup({ contact, action: flags['action']!, due: flags['due'] }) as any;
-  if (isJsonFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
-  console.log(`Followup created: ${res.followup?.id ?? 'ok'}`);
+  const params: any = {};
+  if (flags['due-before']) params.due_before = flags['due-before'];
+  if (flags['owner']) params.owner = flags['owner'];
+  if (flags['company']) params.company = flags['company'];
+  const data = await client.listOpenFollowups(params) as any;
+  if (isJsonFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
+  const followups = data.followups ?? [];
+  if (!followups.length) { console.log('No open followups.'); return; }
+  console.log(`\n${followups.length} open followup(s):\n`);
+  for (const f of followups) {
+    const dnd = f.contact?.do_not_disturb ? ' ⛔' : '';
+    const due = f.due ? ` (due ${f.due.slice(0, 10)})` : '';
+    const name = f.contact?.name ?? f.contact?.email ?? f.contact?.id ?? '?';
+    console.log(`  ${f.action}${due}  — ${name}${dnd}`);
+  }
+  console.log('');
+}
+
+async function cmdCompanyActivity(domain: string): Promise<void> {
+  if (!domain) die('usage: nondual company-activity <domain>');
+  const client = getClient();
+  const data = await client.getCompanyActivity({ domain }) as any;
+  if (isJsonFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
+  const contacts = data.contacts ?? [];
+  console.log(`\nActivity for ${domain}: ${contacts.length} contact(s)\n`);
+  for (const c of contacts) {
+    const dnd = c.do_not_disturb ? ' ⛔' : '';
+    const role = c.profile?.role ? ` · ${c.profile.role}` : '';
+    console.log(`  ${c.name ?? '(unnamed)'}${role}${dnd}`);
+    if (c.interactions?.length) {
+      for (const i of c.interactions.slice(0, 3)) {
+        console.log(`    [${i.occurred_at?.slice(0, 10) ?? '?'}] ${i.channel} ${i.direction}: ${i.summary}`);
+      }
+    }
+  }
+  console.log('');
 }
 
 async function cmdWhoami(): Promise<void> {
@@ -173,8 +210,6 @@ async function cmdWhoami(): Promise<void> {
   console.log(`Source: ${source}`);
 }
 
-// ─── Search ────────────────────────────────────────────────────────────────────
-
 async function cmdSearch(query: string): Promise<void> {
   if (!query) die('Usage: nondual search <query>');
   const client = getClient();
@@ -187,12 +222,11 @@ async function cmdSearch(query: string): Promise<void> {
     const email = c.identifiers?.emails?.[0] ?? '—';
     const role = c.profile?.role ? ` · ${c.profile.role}` : '';
     const co = c.company?.name ? ` @ ${c.company.name}` : '';
-    console.log(`  ${c.name ?? '(unnamed)'}${role}${co}  <${email}>`);
+    const dnd = c.do_not_disturb ? ' ⛔' : '';
+    console.log(`  ${c.name ?? '(unnamed)'}${role}${co}  <${email}>${dnd}`);
   }
   console.log('');
 }
-
-// ─── Import ────────────────────────────────────────────────────────────────────
 
 async function cmdImport(filePath: string): Promise<void> {
   if (!filePath) die('Usage: nondual import <file.csv|file.jsonl>');
@@ -258,26 +292,28 @@ const [,, cmd, ...rest] = process.argv;
 async function main(): Promise<void> {
   try {
     switch (cmd) {
-      case 'init':     await cmdInit(); break;
-      case 'resolve':  await cmdResolve(rest[0] ?? ''); break;
-      case 'context':  await cmdContext(rest[0] ?? ''); break;
-      case 'record':   await cmdRecord(rest); break;
-      case 'followup': await cmdFollowup(rest); break;
-      case 'search':   await cmdSearch(rest[0] ?? ''); break;
-      case 'import':   await cmdImport(rest[0] ?? ''); break;
-      case 'whoami':   await cmdWhoami(); break;
+      case 'init':               await cmdInit(); break;
+      case 'get-contact-info':   await cmdGetContactInfo(rest[0] ?? '', parseFlags(rest.slice(1))); break;
+      case 'record':             await cmdRecord(rest); break;
+      case 'followups':          await cmdListFollowups(parseFlags(rest)); break;
+      case 'company-activity':   await cmdCompanyActivity(rest[0] ?? ''); break;
+      case 'search':             await cmdSearch(rest[0] ?? ''); break;
+      case 'import':             await cmdImport(rest[0] ?? ''); break;
+      case 'whoami':             await cmdWhoami(); break;
       default:
         console.log(`nondual — Your agents' system of record for every contact, conversation and next step.
 
 Usage:
-  nondual init                           Set up your API key
-  nondual resolve <email|linkedin_url>   Resolve a contact to a full profile
-  nondual context <email>                Get relationship context + next steps
-  nondual record <email> --channel email --direction outbound --summary "..."
-  nondual followup <email> --action "..." [--due 2026-08-01]
-  nondual search <query>                 Search contacts by name, company, email
-  nondual import <file.csv|file.jsonl>   Bulk import contacts from CSV or JSONL
-  nondual whoami                         Show current key and email
+  nondual init                                   Set up your API key
+  nondual get-contact-info <email|url|phone>      Get full contact profile + relationship context
+  nondual record <email> --channel email \\
+    --summary "..." [--followup "..." --due date]  Record an interaction (and optionally a followup)
+  nondual followups [--due-before date] \\
+    [--owner agent] [--company domain]             List open followups
+  nondual company-activity <domain>              All contacts + interactions for a company domain
+  nondual search <query>                         Search contacts by name, company, email
+  nondual import <file.csv|file.jsonl>           Bulk import contacts
+  nondual whoami                                 Show current key and email
 
 Flags:
   --json    Machine-readable JSON output

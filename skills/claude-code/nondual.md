@@ -13,7 +13,7 @@ curl -s -X POST https://api.nondual.cloud/v1/keys \
 export NONDUAL_API_KEY=nd_live_...
 ```
 
-## MCP config (add to .claude/mcp.json or CLAUDE.md)
+## MCP config (add to `.claude/mcp.json` or `CLAUDE.md`)
 
 ```json
 {
@@ -28,17 +28,23 @@ export NONDUAL_API_KEY=nd_live_...
 
 ## Tools
 
-- **contacts_resolve(email)** — full profile from one email. Call before any outreach.
-- **contacts_context(contact, purpose?)** — full history + recommended next step.
-- **contacts_record(contact, channel, direction, summary)** — log every interaction.
-- **contacts_followup(contact, action, due?)** — create a follow-up task.
+- **get_contact_info(contact, enrich?)** — full profile, relationship summary, open followups, recommended next action. Check `do_not_disturb` before outreach.
+- **record_contact_interaction(contact, channel, summary, ...)** — log interaction. Optionally create a followup or complete existing ones in the same call.
+- **list_open_followups(due_before?, company?, owner?)** — all open followups with contact snippets.
+- **get_company_activity(domain)** — all contacts + interactions for a domain.
 
-## The loop
+## Workflow
 
 ```
-contacts_resolve("jane@acme.com")           # who is this?
-contacts_record("jane@acme.com", channel: "email", direction: "outbound", summary: "...")
-contacts_context("jane@acme.com")           # later: full history + next step
+get_contact_info("jane@acme.com")         → who is this? history? safe to contact?
+record_contact_interaction(               → log interaction + create followup
+  contact="jane@acme.com",
+  channel="email", summary="Sent intro",
+  followup_action="Follow up next week")
+list_open_followups(due_before="2026-08-01")   → what's due?
+record_contact_interaction(complete_followups=["id"])   → close when done
 ```
 
-Full docs: https://nondual.cloud/docs
+## Docs
+
+https://nondual.cloud/docs

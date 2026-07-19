@@ -12,8 +12,8 @@ Give any agent a memory for the people it works with. One install. No forms. No 
 ## Quick start
 
 ```bash
-npx nondual init                          # store your API key
-npx nondual resolve dario@anthropic.com  # resolve a contact
+npx nondual init                                    # store your API key
+npx nondual get-contact-info dario@anthropic.com   # resolve a contact
 ```
 
 Get a key:
@@ -24,7 +24,7 @@ curl -s -X POST https://api.nondual.cloud/v1/keys \
   -d '{"email":"you@example.com"}'
 ```
 
-Or resolve without a key — 3 free resolves per day, no signup.
+Or call `get-contact-info` without a key — 3 free lookups per day, no signup.
 
 ---
 
@@ -64,115 +64,110 @@ Store your API key locally (`~/.nondual`).
 
 ```bash
 npx nondual init
-# Prompts: Enter your API key:
-# Saved to ~/.nondual
 ```
 
-### `nondual resolve <email>`
+### `nondual get-contact-info <email|linkedin_url|phone|@handle>`
 
-Resolve an email to a full contact profile. Returns name, role, company, verified profiles, a written summary, and a recommended next step.
-
-```bash
-npx nondual resolve dario@anthropic.com
-
-# name       Dario Amodei
-# role       Co-Founder & CEO
-# company    Anthropic
-# linkedin   https://linkedin.com/in/darioamodei
-# github     darioamodei
-# summary    Co-founder and CEO of Anthropic...
-# next       Reach out via LinkedIn with a brief note about your shared interest in AI safety.
-```
-
-Options:
+Get the full contact profile: name, role, company, relationship summary, recent interactions, open followups, and recommended next action.
 
 ```bash
-npx nondual resolve dario@anthropic.com --json   # raw JSON output
-```
+npx nondual get-contact-info dario@anthropic.com
 
-### `nondual context <email>`
-
-Get relationship context for a contact before reaching out. Returns profile, full interaction history across all your agents, open follow-ups, and recommended next action.
-
-```bash
-npx nondual context dario@anthropic.com
-
-# profile    Dario Amodei · Co-Founder & CEO · Anthropic
-# history    2 interactions from your agents
-#   agent_sales  email · 6 days ago  Sent intro re: partnership
-#   agent_exec   call  · 3 days ago  15-min call, discussed use case
-# followups  1 open
-#   Follow up with a concrete proposal (due 2026-07-25)
-# next       Follow up with a concrete proposal.
+# Name:     Dario Amodei
+# Role:     Co-Founder & CEO
+# Company:  Anthropic
+# LinkedIn: https://linkedin.com/in/darioamodei
+# GitHub:   darioamodei
+#
+# Co-founder and CEO of Anthropic...
+#
+# Relationship: Sent intro 6 days ago. Follow-up proposal is due.
+# Recommended: Follow up with a concrete proposal.
 ```
 
 Options:
 
 ```bash
-npx nondual context dario@anthropic.com --purpose "partnership call"
-npx nondual context dario@anthropic.com --json
+npx nondual get-contact-info dario@anthropic.com --json     # raw JSON
+npx nondual get-contact-info dario@anthropic.com --enrich false  # workspace-only, no enrichment
 ```
 
 ### `nondual record <email>`
 
-Record an interaction after any outreach. Your agent name is stored with the interaction so history is attributed.
+Record an interaction. Optionally create a followup or complete existing ones in the same call.
 
 ```bash
 npx nondual record dario@anthropic.com \
   --channel email \
   --direction outbound \
-  --summary "Sent intro about partnership opportunities" \
-  --agent my-sales-agent
+  --summary "Sent intro about partnership opportunities"
 
-# With full email body inline
+# With full body inline:
 npx nondual record dario@anthropic.com \
   --channel email \
   --direction outbound \
   --summary "Sent intro about partnership opportunities" \
-  --details "Hi Dario, I wanted to reach out about..." \
-  --agent my-sales-agent
+  --details "Hi Dario, I wanted to reach out about..."
 
-# Load body from a file (email export, transcript, meeting notes)
+# Load body from a file:
 npx nondual record dario@anthropic.com \
   --channel email \
   --direction outbound \
   --summary "Sent intro about partnership opportunities" \
-  --details-file ./email-body.txt \
-  --agent my-sales-agent
+  --details-file ./email-body.txt
+
+# Create a followup in the same call:
+npx nondual record dario@anthropic.com \
+  --channel call \
+  --summary "Discussed partnership" \
+  --followup "Send proposal deck" \
+  --due 2026-08-01
+
+# Complete all open followups at the same time:
+npx nondual record dario@anthropic.com \
+  --channel email \
+  --summary "Sent the proposal" \
+  --complete all
 ```
-
-Options:
 
 | Flag | Required | Values | Description |
 |---|---|---|---|
 | `--channel` | yes | `email` `call` `linkedin` `slack` `meeting` `sms` `other` | Communication channel |
-| `--direction` | yes | `inbound` `outbound` | Who initiated |
-| `--summary` | yes | string | One-sentence description of what happened |
+| `--direction` | no | `inbound` `outbound` `unknown` | Who initiated (default: `outbound`) |
+| `--summary` | yes | string | One-sentence description |
 | `--details` | no | string | Full content — email body, transcript, notes. No length limit. |
-| `--details-file` | no | path | File whose contents become `details` (email export, transcript, etc.) |
-| `--agent` | no | string | Agent name (defaults to `cli`) |
+| `--details-file` | no | path | File whose contents become `details` |
+| `--followup` | no | string | Create a followup with this action text |
+| `--due` | no | ISO date | Due date for the followup |
+| `--complete` | no | `all` or comma-separated IDs | Complete followups in the same call |
 
-### `nondual followup <email>`
+### `nondual followups`
 
-Create a follow-up task for a contact.
+List open followups with contact snippets. Filter by due date, owner, or company.
 
 ```bash
-npx nondual followup dario@anthropic.com \
-  --action "Follow up with proposal" \
-  --due 2026-07-25
-
-# Follow-up created for dario@anthropic.com
-# action: Follow up with proposal
-# due:    2026-07-25
+npx nondual followups
+npx nondual followups --due-before 2026-08-01
+npx nondual followups --company anthropic.com
+npx nondual followups --json
 ```
 
-Options:
+### `nondual company-activity <domain>`
 
-| Flag | Required | Description |
-|---|---|---|
-| `--action` | yes | What to do |
-| `--due` | no | ISO date (YYYY-MM-DD) |
-| `--agent` | no | Agent name |
+All contacts and recent interactions for a company domain.
+
+```bash
+npx nondual company-activity anthropic.com
+npx nondual company-activity anthropic.com --json
+```
+
+### `nondual search <query>`
+
+Search contacts by name, company, or email.
+
+```bash
+npx nondual search "anthropic"
+```
 
 ### `nondual whoami`
 
@@ -200,55 +195,71 @@ import { Nondual } from 'nondual';
 const nd = new Nondual({ apiKey: process.env.NONDUAL_API_KEY });
 ```
 
-### `nd.resolve(input, options?)`
+### `nd.getContactInfo(input)`
 
 ```typescript
-const { contact } = await nd.resolve({ email: 'dario@anthropic.com' });
+const res = await nd.getContactInfo({ contact: 'dario@anthropic.com' });
 
-console.log(contact.name);               // "Dario Amodei"
-console.log(contact.profile.role);       // "Co-Founder & CEO"
-console.log(contact.company.name);       // "Anthropic"
-console.log(contact.identifiers.linkedin_url);
-console.log(contact.profile.about);      // written summary
-console.log(contact.next.action);        // recommended next step
+console.log(res.contact.name);                 // "Dario Amodei"
+console.log(res.contact.profile.role);         // "Co-Founder & CEO"
+console.log(res.contact.company.name);         // "Anthropic"
+console.log(res.contact.do_not_disturb);       // false
+console.log(res.relationship_summary);         // "2 interactions from your agents"
+console.log(res.recent_interactions);          // [{ channel, occurred_at, summary }, ...]
+console.log(res.open_followups);               // [{ id, action, due }, ...]
+console.log(res.recommended_next_action);      // "Follow up with a concrete proposal."
 ```
 
-### `nd.context(input, options?)`
+Set `enrich: false` for a fast workspace-only lookup (no external enrichment):
 
 ```typescript
-const { context } = await nd.context(
-  { contact: 'dario@anthropic.com' },
-  { agent: 'research-bot' },
-);
-
-console.log(context.relationship_summary);   // "2 interactions from your agents"
-console.log(context.recent_interactions);
-// [{ channel, occurred_at, summary, details }, ...]
-console.log(context.open_followups);
-// [{ id, action, due }, ...]
-console.log(context.recommended_next_action);
+const res = await nd.getContactInfo({ contact: 'dario@anthropic.com', enrich: false });
 ```
 
-### `nd.record(input, options?)`
+### `nd.recordContactInteraction(input)`
 
 ```typescript
-await nd.record({
+const res = await nd.recordContactInteraction({
   contact: 'dario@anthropic.com',
   channel: 'email',
   direction: 'outbound',
   summary: 'Sent intro about partnership opportunities',
-  details: 'Hi Dario, I wanted to reach out...',  // optional — full body
+  details: 'Hi Dario, I wanted to reach out...',   // optional
+  followup_action: 'Send proposal deck',            // optional: create followup in same call
+  followup_due: '2026-08-01',
+  complete_followups: 'all',                        // optional: close open followups
 }, { agent: 'sales-bot' });
+
+console.log(res.interaction.id);        // "interaction_..."
+console.log(res.followup_created);      // { id, action, due } or null
+console.log(res.followups_completed);   // ["followup_..."]
+console.log(res.contact_created);       // true if this was a new contact
 ```
 
-### `nd.followup(input, options?)`
+### `nd.listOpenFollowups(params?)`
 
 ```typescript
-await nd.followup({
-  contact: 'dario@anthropic.com',
-  action: 'Follow up in 3 days',
-  due: '2026-07-25',
-}, { agent: 'sales-bot' });
+const res = await nd.listOpenFollowups({
+  due_before: '2026-08-01',   // optional
+  owner: 'sales-bot',          // optional
+  company: 'anthropic.com',    // optional — exact domain match
+});
+
+for (const f of res.followups) {
+  console.log(f.action, f.due, f.contact.name, f.contact.do_not_disturb);
+}
+```
+
+### `nd.getCompanyActivity(input)`
+
+```typescript
+const res = await nd.getCompanyActivity({ domain: 'anthropic.com' });
+
+console.log(res.domain);          // "anthropic.com"
+console.log(res.total_contacts);  // 3
+for (const c of res.contacts) {
+  console.log(c.name, c.interactions.length);
+}
 ```
 
 ---
@@ -257,13 +268,13 @@ await nd.followup({
 
 Base URL: `https://api.nondual.cloud/v1`
 
-Auth: `Authorization: Bearer YOUR_API_KEY`
+Auth: `Authorization: Bearer YOUR_KEY`
 
-### `POST /resolve`
+### `POST /get-contact-info`
 
 ```bash
-curl -s -X POST https://api.nondual.cloud/v1/resolve \
-  -H "Authorization: Bearer ***" \
+curl -s -X POST https://api.nondual.cloud/v1/get-contact-info \
+  -H "Authorization: Bearer YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"contact": "dario@anthropic.com"}'
 ```
@@ -275,6 +286,8 @@ Response:
   "contact": {
     "id": "contact_...",
     "name": "Dario Amodei",
+    "do_not_disturb": false,
+    "do_not_disturb_set_at": null,
     "identifiers": {
       "emails": ["dario@anthropic.com"],
       "linkedin_url": "https://linkedin.com/in/darioamodei",
@@ -283,48 +296,45 @@ Response:
     },
     "profile": { "role": "Co-Founder & CEO", "about": "...", "location": "..." },
     "company": { "name": "Anthropic", "domain": "anthropic.com" },
-    "next": { "action": "Reach out via LinkedIn..." }
-  }
+    "next": { "action": "Follow up with a concrete proposal." }
+  },
+  "enriched": true,
+  "relationship_summary": "2 interactions. Follow-up proposal is due.",
+  "recommended_next_action": "Follow up with a concrete proposal.",
+  "recent_interactions": [],
+  "open_followups": []
 }
 ```
 
-### `POST /context`
+### `POST /record-contact-interaction`
 
 ```bash
-curl -s -X POST https://api.nondual.cloud/v1/context \
-  -H "Authorization: Bearer $NONDUAL_API_KEY" \
-  -H "X-Nondual-Agent: my-agent" \
-  -H "Content-Type: application/json" \
-  -d '{"contact": "dario@anthropic.com"}'
-```
-
-### `POST /interactions`
-
-```bash
-curl -s -X POST https://api.nondual.cloud/v1/interactions \
-  -H "Authorization: Bearer $NONDUAL_API_KEY" \
+curl -s -X POST https://api.nondual.cloud/v1/record-contact-interaction \
+  -H "Authorization: Bearer YOUR_KEY" \
   -H "X-Nondual-Agent: my-agent" \
   -H "Content-Type: application/json" \
   -d '{
     "contact": "dario@anthropic.com",
     "channel": "email",
     "direction": "outbound",
-    "summary": "Sent intro about partnership opportunities"
+    "summary": "Sent intro about partnership opportunities",
+    "followup_action": "Send proposal deck",
+    "followup_due": "2026-08-01"
   }'
 ```
 
-### `POST /followups`
+### `GET /list-open-followups`
 
 ```bash
-curl -s -X POST https://api.nondual.cloud/v1/followups \
-  -H "Authorization: Bearer $NONDUAL_API_KEY" \
-  -H "X-Nondual-Agent: my-agent" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "contact": "dario@anthropic.com",
-    "action": "Follow up with proposal",
-    "due": "2026-07-25"
-  }'
+curl -s "https://api.nondual.cloud/v1/list-open-followups?due_before=2026-08-01" \
+  -H "Authorization: Bearer YOUR_KEY"
+```
+
+### `GET /get-company-activity?domain=`
+
+```bash
+curl -s "https://api.nondual.cloud/v1/get-company-activity?domain=anthropic.com" \
+  -H "Authorization: Bearer YOUR_KEY"
 ```
 
 ---
@@ -333,10 +343,10 @@ curl -s -X POST https://api.nondual.cloud/v1/followups \
 
 | Tool | Input | What it does |
 |---|---|---|
-| `contacts_resolve` | `email` | Resolve to full profile |
-| `contacts_context` | `contact`, `purpose?` | Get relationship history + next step |
-| `contacts_record` | `contact`, `channel`, `direction`, `summary` | Log an interaction |
-| `contacts_followup` | `contact`, `action`, `due?` | Create a follow-up task |
+| `get_contact_info` | `contact`, `enrich?` | Full profile + relationship context |
+| `record_contact_interaction` | `contact`, `channel`, `summary`, `followup_action?`, `complete_followups?` | Log interaction, create/close followups |
+| `list_open_followups` | `due_before?`, `owner?`, `company?` | All open followups with contact snippets |
+| `get_company_activity` | `domain` | All contacts + interactions for a company |
 
 ---
 
@@ -345,10 +355,10 @@ curl -s -X POST https://api.nondual.cloud/v1/followups \
 The value of Nondual is the **memory loop**, not just enrichment:
 
 ```
-agent_sales  →  contacts_resolve("dario@anthropic.com")   # who is this person?
-agent_sales  →  contacts_record(channel=email, ...)        # log the outreach
-agent_exec   →  contacts_context("dario@anthropic.com")    # weeks later, different agent
-               ← sees: who reached out, when, what was said, what to do next
+agent_sales  →  get_contact_info("dario@anthropic.com")      # who is this? any history?
+agent_sales  →  record_contact_interaction(channel=email, …)  # log the outreach + create followup
+agent_exec   →  get_contact_info("dario@anthropic.com")      # weeks later, different agent
+               ← sees: who reached out, when, what was said, open followup, recommended next step
 ```
 
 Every agent on your key reads and writes the same relationship.

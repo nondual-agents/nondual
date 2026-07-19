@@ -6,6 +6,11 @@
   "properties": {
     "id": { "type": ["string", "null"] },
     "name": { "type": ["string", "null"] },
+    "do_not_disturb": {
+      "type": "boolean",
+      "description": "When true, do not reach out to this contact."
+    },
+    "do_not_disturb_set_at": { "type": ["string", "null"] },
     "identifiers": {
       "type": "object",
       "properties": {
@@ -27,9 +32,8 @@
         "profiles": {
           "type": "object",
           "properties": {
-            "linkedin": { "type": ["string", "null"] },
             "github": { "type": ["string", "null"] },
-            "x": { "type": ["string", "null"] },
+            "twitter": { "type": ["string", "null"] },
             "website": { "type": ["string", "null"] }
           }
         }
@@ -38,6 +42,7 @@
     "company": {
       "type": ["object", "null"],
       "properties": {
+        "id": { "type": ["string", "null"] },
         "name": { "type": ["string", "null"] },
         "domain": { "type": ["string", "null"] }
       }
@@ -45,22 +50,20 @@
     "relationship": {
       "type": "object",
       "properties": {
-        "summary": { "type": "string" },
+        "summary": { "type": ["string", "null"] },
         "stage": { "type": ["string", "null"] },
         "last_interaction_at": { "type": ["string", "null"] }
       }
     },
     "next": {
-      "type": "object",
+      "type": ["object", "null"],
       "properties": {
-        "action": { "type": "string" },
+        "action": { "type": ["string", "null"] },
         "due": { "type": ["string", "null"] },
         "owner": { "type": ["string", "null"] }
       }
     },
-    "provenance": {
-      "type": "object",
-      "description": "Map of field path → {source, timestamp, confidence, kind}. source is one of: enrichment, web, model, user, import. kind is fact or inference."
-    }
+    "created_at": { "type": "string" },
+    "updated_at": { "type": "string" }
   }
 }

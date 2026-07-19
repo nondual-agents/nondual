@@ -2,15 +2,15 @@
 name: nondual
 description: >
   Your agents' system of record for every contact, conversation and next step.
-  Resolve any email or LinkedIn URL to a full contact profile. Record agent
-  outreach. Fetch relationship context before any call or message. Shared
-  memory across all agents on the same key.
-version: "0.2"
+  Get full contact profiles before any outreach. Record every interaction.
+  List open followups. Get company-level activity. Shared memory across all
+  agents on the same key.
+version: "0.3"
 tools:
-  - contacts_resolve
-  - contacts_context
-  - contacts_record
-  - contacts_followup
+  - get_contact_info
+  - record_contact_interaction
+  - list_open_followups
+  - get_company_activity
 mcp:
   url: https://mcp.nondual.cloud
   auth: bearer
@@ -30,15 +30,21 @@ curl -s -X POST https://api.nondual.cloud/v1/keys \
   -d '{"email":"you@example.com"}'
 ```
 
-2. Set `NONDUAL_API_KEY` in your environment.
+2. Set the key:
+```bash
+export NONDUAL_API_KEY=nd_live_...
+```
 
-3. Add the MCP server to your agent config:
+3. Add the MCP server to your agent config (see below).
+
+## MCP config
+
 ```json
 {
   "mcpServers": {
     "nondual": {
       "url": "https://mcp.nondual.cloud",
-      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+      "headers": { "Authorization": "Bearer $NONDUAL_API_KEY" }
     }
   }
 }
@@ -46,65 +52,69 @@ curl -s -X POST https://api.nondual.cloud/v1/keys \
 
 ## Tools
 
-### contacts_resolve
-Resolve any email or LinkedIn URL to a full contact profile.
+### `get_contact_info`
+Get the full contact profile: name, role, company, do_not_disturb flag, relationship summary, recent interactions, open followups, recommended next action.
 
-**Always call this first before any outreach.** Returns: name, role, company,
-verified profiles (LinkedIn, GitHub, website), a written summary, and a
-recommended next step.
+**Call before any outreach.** Works without a key (3 free/day per IP) or with a key for workspace context.
 
-```
-contacts_resolve(email: "jane@acme.com")
-contacts_resolve(linkedin_url: "https://linkedin.com/in/janesmith")
-```
-
-### contacts_context
-Get relationship context for a contact before reaching out.
-
-Returns: profile, all interaction history across all agents on your key,
-open followups, and recommended next action.
-
-```
-contacts_context(contact: "jane@acme.com")
-contacts_context(contact: "jane@acme.com", purpose: "quarterly check-in")
+```json
+{
+  "contact": "jane@acme.com",
+  "enrich": true
+}
 ```
 
-### contacts_record
-Record an interaction after any outreach. Always include your agent name
-via X-Nondual-Agent header or the `agent` option so history is attributed.
+Set `enrich: false` for a fast workspace-only lookup.
 
-Channels: email, call, linkedin, slack, meeting, sms, other
-Directions: inbound, outbound
+### `record_contact_interaction`
+Record an interaction. Optionally create a followup or complete existing ones in the same call.
 
-```
-contacts_record(
-  contact: "jane@acme.com",
-  channel: "email",
-  direction: "outbound",
-  summary: "Sent intro about partnership opportunities"
-)
-```
-
-### contacts_followup
-Create a followup task for a contact.
-
-```
-contacts_followup(
-  contact: "jane@acme.com",
-  action: "Follow up in 3 days",
-  due: "2026-07-25"
-)
+```json
+{
+  "contact": "jane@acme.com",
+  "channel": "email",
+  "direction": "outbound",
+  "summary": "Sent intro about partnership",
+  "details": "Full email body here...",
+  "followup_action": "Send proposal deck",
+  "followup_due": "2026-08-01",
+  "complete_followups": "all"
+}
 ```
 
-## The memory loop
+`complete_followups` can be `"all"` or an array of followup IDs.
 
-The value of Nondual is the **memory loop**, not just enrichment:
+### `list_open_followups`
+List all open followups with contact snippets. Checks `do_not_disturb` before outreach.
 
-1. `contacts_resolve` — learn who the person is before acting
-2. `contacts_record` — log what you did (your agent name is stored)
-3. `contacts_context` — any agent on the same key sees the full history
+```json
+{
+  "due_before": "2026-08-01",
+  "company": "acme.com"
+}
+```
 
-A different agent asking for context on the same contact will see exactly
-who reached out, when, on which platform, what was said, and what the
-recommended next step is. This is shared relationship memory across all
-your agents.
+### `get_company_activity`
+All contacts and interactions for a domain. Exact match — no subdomains.
+
+```json
+{ "domain": "acme.com" }
+```
+
+## Workflow
+
+```
+get_contact_info(email)             → who is this? history? do_not_disturb?
+record_contact_interaction(...)     → log interaction, create followup
+list_open_followups()               → what's due? check do_not_disturb
+record_contact_interaction(
+  complete_followups: ["id"])       → close followup when done
+```
+
+## do_not_disturb
+
+`contact.do_not_disturb = true` means don't reach out. Always check before outreach. Set it in `record_contact_interaction` with `"do_not_disturb": true`.
+
+## Docs
+
+Full reference: https://nondual.cloud/docs
