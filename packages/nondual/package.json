@@ -1,6 +1,6 @@
 {
   "name": "nondual",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Your agents' system of record for every contact, conversation and next step.",
   "type": "module",
   "main": "dist/index.js",
