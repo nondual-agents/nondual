@@ -294,9 +294,20 @@ async function main(): Promise<void> {
     switch (cmd) {
       case 'init':               await cmdInit(); break;
       case 'get-contact-info':   await cmdGetContactInfo(rest[0] ?? '', parseFlags(rest.slice(1))); break;
-      case 'record':             await cmdRecord(rest); break;
-      case 'followups':          await cmdListFollowups(parseFlags(rest)); break;
-      case 'company-activity':   await cmdCompanyActivity(rest[0] ?? ''); break;
+      // Canonical CR-0001 names
+      case 'record-contact-interaction': await cmdRecord(rest); break;
+      case 'list-open-followups':        await cmdListFollowups(parseFlags(rest)); break;
+      case 'get-company-activity':       await cmdCompanyActivity(rest[0] ?? ''); break;
+      // Deprecated aliases (pre-0.3.0) — warn and delegate
+      case 'record':
+        console.error('warning: "record" is deprecated, use "record-contact-interaction"');
+        await cmdRecord(rest); break;
+      case 'followups':
+        console.error('warning: "followups" is deprecated, use "list-open-followups"');
+        await cmdListFollowups(parseFlags(rest)); break;
+      case 'company-activity':
+        console.error('warning: "company-activity" is deprecated, use "get-company-activity"');
+        await cmdCompanyActivity(rest[0] ?? ''); break;
       case 'search':             await cmdSearch(rest[0] ?? ''); break;
       case 'import':             await cmdImport(rest[0] ?? ''); break;
       case 'whoami':             await cmdWhoami(); break;
@@ -306,11 +317,10 @@ async function main(): Promise<void> {
 Usage:
   nondual init                                   Set up your API key
   nondual get-contact-info <email|url|phone>      Get full contact profile + relationship context
-  nondual record <email> --channel email \\
-    --summary "..." [--followup "..." --due date]  Record an interaction (and optionally a followup)
-  nondual followups [--due-before date] \\
-    [--owner agent] [--company domain]             List open followups
-  nondual company-activity <domain>              All contacts + interactions for a company domain
+  nondual record-contact-interaction <email> \\
+    --channel email --summary \"...\"               Record an interaction (and optionally a followup)
+  nondual list-open-followups [--due-before date] List open followups
+  nondual get-company-activity <domain>          All contacts + interactions for a company domain
   nondual search <query>                         Search contacts by name, company, email
   nondual import <file.csv|file.jsonl>           Bulk import contacts
   nondual whoami                                 Show current key and email
@@ -319,6 +329,7 @@ Flags:
   --json    Machine-readable JSON output
 
 Docs: https://nondual.cloud/docs`);
+        process.exit(1);
     }
   } catch (err) {
     if (err instanceof NondualError) {
