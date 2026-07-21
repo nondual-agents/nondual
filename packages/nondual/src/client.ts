@@ -62,7 +62,7 @@ export class NondualError extends Error {
 // ─── Client ───────────────────────────────────────────────────────────────────
 
 export class Nondual {
-  private readonly apiKey: *** | undefined;
+  private readonly apiKey: string | undefined;
   private readonly baseUrl: string;
   private readonly defaultAgent: string | undefined;
   private readonly defaultAgentUser: string | undefined;
