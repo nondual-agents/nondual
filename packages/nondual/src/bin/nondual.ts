@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * nondual CLI — v0.3.0
+ * nondual CLI — v0.3.4
  * Your agents' system of record for every contact, conversation and next step.
  */
 
@@ -89,7 +89,29 @@ async function prompt(question: string): Promise<string> {
 
 // ─── Commands ─────────────────────────────────────────────────────────────────
 
-async function cmdInit(): Promise<void> {
+async function cmdInit(flags: Record<string, string | undefined>): Promise<void> {
+  const isAgent = flags['agent'] !== undefined;
+
+  if (isAgent) {
+    // Agent path: no stdin prompts. Email must be supplied as --email flag.
+    const email = flags['email'];
+    if (!email) die('--agent requires --email <address>');
+    const res = await (Nondual as any).createKey(email, BASE_URL, { requested_by: 'agent' }) as any;
+    // Always print machine-parseable JSON on the agent path
+    console.log(JSON.stringify({
+      api_key: res.api_key,
+      status: res.status,
+      restrictions: res.restrictions,
+      expires_at: res.expires_at,
+      message: res.message,
+    }));
+    if (res.api_key) {
+      writeConfig({ apiKey: res.api_key, email });
+    }
+    return;
+  }
+
+  // Human path: interactive
   let { apiKey, email } = readConfig();
   if (apiKey) {
     console.log(`Already initialised (${email ?? 'key stored'}). Run \`nondual whoami\` to verify.`);
@@ -98,11 +120,26 @@ async function cmdInit(): Promise<void> {
   email = await prompt('Email address: ');
   if (!email) die('email required');
   console.log('Creating key...');
-  const res = await Nondual.createKey(email, BASE_URL) as any;
-  apiKey = res.api_key ?? res.key ?? res.apiKey;
-  if (!apiKey) die(`Unexpected response: ${JSON.stringify(res)}`);
-  writeConfig({ apiKey, email });
-  console.log(`\nKey stored in ${CONFIG_PATH}`);
+  const res = await (Nondual as any).createKey(email, BASE_URL) as any;
+  // Human path: key is delivered by email, not in the response body.
+  // Check email to retrieve it.
+  if (res.key_delivery === 'email' || (!res.api_key && res.message)) {
+    console.log(`\nKey sent to ${email}. Check your inbox.`);
+    console.log('Once you have the key, set it with: export NONDUAL_API_KEY=<key>');
+    console.log('Or paste it to store locally:\n');
+    const pastedKey = await prompt('Paste key here (or press Enter to skip): ');
+    if (pastedKey?.startsWith('nd_')) {
+      writeConfig({ apiKey: pastedKey, email });
+      console.log(`\nKey stored in ${CONFIG_PATH}`);
+    }
+  } else {
+    // Fallback: if key came back directly (shouldn't happen in production)
+    const apiKeyFromRes = res.api_key ?? res.key ?? res.apiKey;
+    if (apiKeyFromRes) {
+      writeConfig({ apiKey: apiKeyFromRes, email });
+      console.log(`\nKey stored in ${CONFIG_PATH}`);
+    }
+  }
   console.log('Check your email to verify and unlock higher limits.\n');
   console.log('⭐ Star the repo: https://github.com/nondual-agents/nondual');
 }
@@ -278,8 +315,14 @@ function parseFlags(args: string[]): Record<string, string | undefined> {
   for (let i = 0; i < args.length; i++) {
     if (args[i]?.startsWith('--')) {
       const key = args[i]!.slice(2);
-      flags[key] = args[i + 1] ?? 'true';
-      i++;
+      // Boolean flags (no value after, or next arg is another flag)
+      const next = args[i + 1];
+      if (!next || next.startsWith('--')) {
+        flags[key] = 'true';
+      } else {
+        flags[key] = next;
+        i++;
+      }
     }
   }
   return flags;
@@ -292,7 +335,7 @@ const [,, cmd, ...rest] = process.argv;
 async function main(): Promise<void> {
   try {
     switch (cmd) {
-      case 'init':               await cmdInit(); break;
+      case 'init':               await cmdInit(parseFlags(rest)); break;
       case 'get-contact-info':   await cmdGetContactInfo(rest[0] ?? '', parseFlags(rest.slice(1))); break;
       // Canonical CR-0001 names
       case 'record-contact-interaction': await cmdRecord(rest); break;
@@ -315,15 +358,16 @@ async function main(): Promise<void> {
         console.log(`nondual — Your agents' system of record for every contact, conversation and next step.
 
 Usage:
-  nondual init                                   Set up your API key
-  nondual get-contact-info <email|url|phone>      Get full contact profile + relationship context
+  nondual init                                   Set up your API key (interactive)
+  nondual init --agent --email <addr>            Agent path: prints key as JSON, no prompts
+  nondual get-contact-info <email|url|phone>     Get full contact profile + relationship context
   nondual record-contact-interaction <email> \\
-    --channel email --summary \"...\"               Record an interaction (and optionally a followup)
+    --channel email --summary "..."              Record an interaction (and optionally a followup)
   nondual list-open-followups [--due-before date] List open followups
-  nondual get-company-activity <domain>          All contacts + interactions for a company domain
-  nondual search <query>                         Search contacts by name, company, email
-  nondual import <file.csv|file.jsonl>           Bulk import contacts
-  nondual whoami                                 Show current key and email
+  nondual get-company-activity <domain>         All contacts + interactions for a company domain
+  nondual search <query>                        Search contacts by name, company, email
+  nondual import <file.csv|file.jsonl>          Bulk import contacts
+  nondual whoami                                Show current key and email
 
 Flags:
   --plain   Human-readable text output (default: pretty JSON)
