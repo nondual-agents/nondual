@@ -12,8 +12,10 @@ Give any agent a memory for the people it works with. One install. No forms. No 
 ## Quick start
 
 ```bash
-npx nondual init                                    # store your API key
-npx nondual get-contact-info dario@anthropic.com   # get contact information
+npx nondual init
+npx nondual get-contact-info dario@anthropic.com
+npx nondual record-contact-interaction dario@anthropic.com \
+  --summary "agent looked up Dario to explore the possibilities of nondual"
 ```
 
 Get a key:
@@ -372,3 +374,4 @@ Full reference: [nondual.cloud/docs](https://nondual.cloud/docs)
 ## License
 
 MIT
+
