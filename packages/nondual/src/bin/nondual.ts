@@ -38,10 +38,10 @@ function getClient(): Nondual {
 
 // ─── Output helpers ───────────────────────────────────────────────────────────
 
-function isJsonFlag(): boolean { return process.argv.includes('--json'); }
+function isPlainFlag(): boolean { return process.argv.includes('--plain'); }
 
 function printContact(contact: any): void {
-  if (isJsonFlag()) { console.log(JSON.stringify(contact, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(contact, null, 2)); return; }
   console.log(`\nName:     ${contact.name ?? '—'}`);
   if (contact.do_not_disturb) console.log('Status:   ⛔ DO NOT DISTURB');
   if (contact.profile?.role) console.log(`Role:     ${contact.profile.role}`);
@@ -57,7 +57,7 @@ function printContact(contact: any): void {
 }
 
 function printGetContactInfo(res: any): void {
-  if (isJsonFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
   if (res.contact) printContact(res.contact);
   if (res.relationship_summary) console.log(`Relationship: ${res.relationship_summary}`);
   if (res.recent_interactions?.length) {
@@ -111,7 +111,7 @@ async function cmdGetContactInfo(identifier: string, flags: Record<string, strin
   if (!identifier) die('usage: nondual get-contact-info <email|linkedin_url|phone|@handle>');
   const client = getClient();
   const enrich = flags['enrich'] !== 'false';
-  console.error('Fetching contact info...');
+  if (isPlainFlag()) console.error('Fetching contact info...');
   const res = await client.getContactInfo({ contact: identifier, enrich });
   printGetContactInfo(res);
 }
@@ -151,7 +151,7 @@ async function cmdRecord(args: string[]): Promise<void> {
     do_not_disturb: flags['dnd'] !== undefined ? flags['dnd'] !== 'false' : undefined,
   }) as any;
 
-  if (isJsonFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(res, null, 2)); return; }
   console.log(`Interaction recorded: ${res.interaction?.id ?? 'ok'}`);
   if (res.followup_created) console.log(`Followup created:     ${res.followup_created.id}`);
   if (res.followups_completed?.length) console.log(`Followups completed:  ${res.followups_completed.join(', ')}`);
@@ -165,7 +165,7 @@ async function cmdListFollowups(flags: Record<string, string | undefined>): Prom
   if (flags['owner']) params.owner = flags['owner'];
   if (flags['company']) params.company = flags['company'];
   const data = await client.listOpenFollowups(params) as any;
-  if (isJsonFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
   const followups = data.followups ?? [];
   if (!followups.length) { console.log('No open followups.'); return; }
   console.log(`\n${followups.length} open followup(s):\n`);
@@ -182,7 +182,7 @@ async function cmdCompanyActivity(domain: string): Promise<void> {
   if (!domain) die('usage: nondual company-activity <domain>');
   const client = getClient();
   const data = await client.getCompanyActivity({ domain }) as any;
-  if (isJsonFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
   const contacts = data.contacts ?? [];
   console.log(`\nActivity for ${domain}: ${contacts.length} contact(s)\n`);
   for (const c of contacts) {
@@ -214,7 +214,7 @@ async function cmdSearch(query: string): Promise<void> {
   if (!query) die('Usage: nondual search <query>');
   const client = getClient();
   const data = await client.searchContacts(query);
-  if (isJsonFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(data, null, 2)); return; }
   const contacts = (data as any).contacts ?? [];
   if (!contacts.length) { console.log('No contacts found.'); return; }
   console.log(`\nFound ${contacts.length} contact(s):\n`);
@@ -256,7 +256,7 @@ async function cmdImport(filePath: string): Promise<void> {
 
   const client = getClient();
   const result = await client.importContacts(rows);
-  if (isJsonFlag()) { console.log(JSON.stringify(result, null, 2)); return; }
+  if (!isPlainFlag()) { console.log(JSON.stringify(result, null, 2)); return; }
   const imp = (result as any).imported ?? {};
   console.log(`\n✓ Import complete`);
   console.log(`  Contacts created: ${imp.contacts_created ?? 0}`);
@@ -326,7 +326,7 @@ Usage:
   nondual whoami                                 Show current key and email
 
 Flags:
-  --json    Machine-readable JSON output
+  --plain   Human-readable text output (default: pretty JSON)
 
 Docs: https://nondual.cloud/docs`);
         process.exit(1);
