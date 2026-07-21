@@ -73,7 +73,7 @@ function printGetContactInfo(res: any): void {
     }
   }
   if (res.recommended_next_action) console.log(`\nRecommended: ${res.recommended_next_action}`);
-  if (!res.enriched) console.log('(workspace-only — no enrichment ran)');
+  if (!res.enriched) console.log('(served from cache — no live vendor call this request)');
   console.log('');
 }
 
