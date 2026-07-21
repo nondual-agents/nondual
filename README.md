@@ -367,6 +367,27 @@ Every agent on your key reads and writes the same relationship.
 
 ---
 
+## Or paste this to your agent
+
+If your workflow is a chat with an AI agent (Cursor, Claude Code, Hermes, Codex), paste this prompt directly:
+
+```
+Set up nondual in this project. Nondual is my agents' system of record for
+every contact, conversation and next step.
+
+1. Read https://nondual.cloud/agents.md?src=prompt and follow the setup for
+   your platform, MCP or CLI. If you cannot browse the web, run:
+   npx nondual init
+2. The API key needs one email address. Ask me which one to use.
+3. Verify the setup: call get-contact-info on dario@anthropic.com, then
+   record-contact-interaction on the same contact with the summary
+   "agent looked up Dario to explore the possibilities of nondual".
+4. Show me the profile you received and confirm the write landed.
+```
+
+The agent reads the onboarding docs, sets up MCP or CLI, obtains a key, and reports the resolved profile back in chat.
+
+
 ## Docs
 
 Full reference: [nondual.cloud/docs](https://nondual.cloud/docs)
