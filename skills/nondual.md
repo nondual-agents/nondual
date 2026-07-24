@@ -64,6 +64,16 @@ Get the full contact profile: name, role, company, do_not_disturb flag, relation
 }
 ```
 
+Pass `also` when you have both an email and LinkedIn URL for the same person — guarantees a single merged contact:
+
+```json
+{
+  "contact": "jane@acme.com",
+  "also": ["https://linkedin.com/in/janesmith"],
+  "enrich": true
+}
+```
+
 Set `enrich: false` for a fast workspace-only lookup.
 
 ### `record_contact_interaction`
@@ -115,6 +125,31 @@ record_contact_interaction(
 
 `contact.do_not_disturb = true` means don't reach out. Always check before outreach. Set it in `record_contact_interaction` with `"do_not_disturb": true`.
 
+## Bulk import
+
+Use `imports` to seed a workspace from a CSV or CRM export (up to 5000 rows per call):
+
+```json
+{
+  "rows": [
+    {
+      "email": "jane@acme.com",
+      "linkedin_url": "https://linkedin.com/in/janesmith",
+      "name": "Jane Smith",
+      "company": "Acme",
+      "company_domain": "acme.com",
+      "summary": "Met at SaaStr 2026",
+      "channel": "meeting",
+      "action": "Send follow-up",
+      "due": "2026-08-01"
+    }
+  ]
+}
+```
+
+Each row needs at least `email` or `linkedin_url`. Interaction written if `summary` + `channel` present. Followup written if `action` present.
+
 ## Docs
 
 Full reference: https://nondual.cloud/docs
+GitHub: https://github.com/nondual-agents/nondual
