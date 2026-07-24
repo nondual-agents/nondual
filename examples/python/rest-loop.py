@@ -91,6 +91,7 @@ def main():
         channel="email",
         direction="outbound",
         summary="Sent intro about AI safety research partnership",
+        details="Hi Dario, reaching out about a potential research partnership on AI safety. Would love to share what we are building.",
         followup_action="Follow up if no reply in 5 days",
         followup_due=due_date,
     )

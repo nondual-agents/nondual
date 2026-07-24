@@ -388,7 +388,7 @@ curl -s -X POST https://api.nondual.cloud/v1/get-contact-info \
 
 ```bash
 curl -s -X POST https://api.nondual.cloud/v1/record-contact-interaction \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer ***" \
   -H "X-Nondual-Agent: my-agent" \
   -H "Content-Type: application/json" \
   -d '{
@@ -396,6 +396,7 @@ curl -s -X POST https://api.nondual.cloud/v1/record-contact-interaction \
     "channel": "email",
     "direction": "outbound",
     "summary": "Sent intro about partnership opportunities",
+    "details": "Hi Dario, I wanted to reach out about a potential partnership. Happy to share more about what we are building.",
     "followup_action": "Send proposal deck",
     "followup_due": "2026-08-01"
   }'

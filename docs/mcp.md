@@ -99,6 +99,7 @@ record_contact_interaction(
   summary: "Sent pricing overview",
   channel: "email",
   direction: "outbound",
+  details: "Hi Jane, following up with the pricing overview we discussed. Let me know if you have questions.",
   followup_action: "Send proposal deck",
   followup_due: "2026-08-01"
 )
@@ -109,6 +110,7 @@ Input:
 - `summary` (required) — what happened, in plain language
 - `channel` — `email` | `call` | `meeting` | `message` | `linkedin` | `twitter` | `other`
 - `direction` — `inbound` | `outbound` | `unknown`
+- `details` — full content of the communication: email body, transcript, meeting notes. No length limit.
 - `agent` — name of the calling agent (stored with the interaction)
 - `followup_action`, `followup_due`, `followup_agent` — creates a followup in the same call
 - `complete_followups` — array of followup IDs, or `"all"`

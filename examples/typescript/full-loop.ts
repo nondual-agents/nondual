@@ -38,6 +38,7 @@ async function main() {
     channel: 'email',
     direction: 'outbound',
     summary: 'Sent intro email about AI safety research partnership',
+    details: 'Hi Dario, reaching out about a potential research partnership on AI safety. Would love to share what we are building.',
     followup_action: 'Follow up if no reply in 5 days',
     followup_due: new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10),
   }, { agent: 'sales-bot' }) as any;

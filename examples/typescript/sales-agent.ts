@@ -64,6 +64,7 @@ async function processProspect(p: Prospect) {
     channel: 'email',
     direction: 'outbound',
     summary: emailSummary,
+    details: `Hi ${p.name?.split(' ')[0] ?? 'there'},\n\nI wanted to reach out about a potential partnership. ${emailSummary}\n\nLooking forward to connecting.`,
     followup_action: 'Check for reply and follow up if none in 5 days',
     followup_due: new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10),
   }) as any;

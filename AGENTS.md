@@ -162,6 +162,7 @@ POST /v1/record-contact-interaction
   "channel": "email",
   "direction": "outbound",
   "summary": "Sent intro about AI safety partnership",
+  "details": "Hi Dario, I wanted to reach out about a potential AI safety research collaboration. Happy to share more.",
   "followup_action": "Send proposal deck",
   "followup_due": "2026-08-01"
 }

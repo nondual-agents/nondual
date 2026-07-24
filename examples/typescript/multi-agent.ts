@@ -32,6 +32,7 @@ async function main() {
       channel: 'email',
       direction: 'outbound',
       summary: 'Sent partnership intro — AI agent integration use case',
+      details: 'Hi, reaching out about how Nondual could fit into your agent workflow. Happy to share more detail.',
       followup_action: 'Follow up if no reply by end of week',
       followup_due: new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10),
     });
@@ -72,6 +73,7 @@ async function main() {
     channel: 'call',
     direction: 'inbound',
     summary: 'Inbound call — they want to see a demo of the agent integration',
+    details: 'Called to follow up on the intro email. Very interested in the multi-agent memory use case. Asked for a demo.',
     followup_action: 'Send demo link and schedule 30-min walkthrough',
     followup_due: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10),
     complete_followups: 'all', // close the sales-bot followup
