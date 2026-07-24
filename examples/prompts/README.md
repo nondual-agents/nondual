@@ -18,7 +18,8 @@ You have access to Nondual (MCP: https://mcp.nondual.cloud/mcp).
 
 Rules:
 - Before any outreach: call get_contact_info. If do_not_disturb is true, do not reach out.
-- After any outreach: call record_contact_interaction with channel, direction, and summary.
+- After any outreach: call record_contact_interaction with channel, direction, summary,
+  and details (the actual email body, transcript, or meeting notes).
 - To see what's pending: call list_open_followups.
 
 Docs: https://github.com/nondual-agents/nondual/blob/main/docs/agents.md
@@ -48,7 +49,8 @@ Before contacting anyone:
 After any outreach (email sent, call made, message sent):
   Call record-contact-interaction immediately.
   Set channel (email/call/linkedin/slack/meeting/sms/other) and direction (outbound).
-  Write a one-sentence summary of what happened.
+  summary: one sentence describing what happened.
+  details: the actual email body, transcript excerpt, or meeting notes — full content, no length limit.
   If you expect a reply, add followup_action and followup_due.
 
 At the start of each session:
@@ -77,8 +79,9 @@ Before any meeting or call:
 
 After any meeting or call:
   Call record-contact-interaction for each attendee (channel: meeting or call).
-  Write a summary of what was discussed and any commitments made.
-  For each commitment, create a followup with followup_action and followup_due.
+  summary: one sentence — what was discussed and any decisions made.
+  details: full meeting notes, key points discussed, commitments made.
+  For each commitment, add followup_action and followup_due in the same call.
 
 Weekly:
   Call list-open-followups and send a digest to the executive.
@@ -104,8 +107,9 @@ Before any candidate touchpoint:
 
 After every touchpoint (application review, screen, interview, offer, rejection):
   Call record-contact-interaction.
-  Channel: call (phone screen), meeting (interview), email (written comms).
-  Summary: one sentence — what stage, what outcome.
+  channel: call (phone screen), meeting (interview), email (written comms).
+  summary: one sentence — what stage, what outcome.
+  details: full notes — what was discussed, red flags, strengths, next steps agreed.
   If moving forward: followup_action = next step, followup_due = target date.
   If rejected: do_not_disturb = true (prevents accidental re-contact).
 
@@ -130,10 +134,11 @@ Before any investor communication:
   Never contact anyone with do_not_disturb set — these are hard opt-outs.
 
 After every investor touchpoint (update email, call, meeting, conference):
-  Record it immediately with record-contact-interaction.
-  For LP updates: channel=email, direction=outbound, summary="Sent Q[N] update".
-  For inbound calls: channel=call, direction=inbound.
-  Always log the key points discussed in the summary field.
+  Call record-contact-interaction immediately.
+  channel: email/call/meeting as appropriate. direction: outbound or inbound.
+  summary: one sentence — what type of communication and outcome.
+  details: key points discussed, questions asked, concerns raised, commitments made.
+  For LP updates: log the full update text in details.
 
 For quarterly LP updates:
   Call list-open-followups to find LPs awaiting follow-up materials.

@@ -247,7 +247,8 @@ You have access to Nondual — a shared memory for every person your agents talk
 
 Before any outreach to a person, call get-contact-info with their email or LinkedIn URL.
 Check do_not_disturb before sending anything. Read relationship_summary and open_followups.
-After any outreach, call record-contact-interaction with channel, direction, and summary.
+After any outreach, call record-contact-interaction with channel, direction, summary,
+and details (the actual email body, transcript, or meeting notes — no length limit).
 At the start of any sales or outreach workflow, call list-open-followups to see what's due.
 
 MCP: https://mcp.nondual.cloud/mcp (Authorization: Bearer NONDUAL_API_KEY)

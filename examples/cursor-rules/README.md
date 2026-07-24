@@ -29,15 +29,17 @@ AFTER any outreach (email sent, call made, meeting held, message sent):
     - channel: email | call | meeting | linkedin | slack | sms | other
     - direction: inbound | outbound
     - summary: one sentence describing what happened
-  Optionally create a followup in the same call with followup_action + followup_due.
+    - details: full content — the actual email body, call transcript, or meeting notes
+  Optionally add followup_action + followup_due to create a followup in the same call.
+  Optionally set complete_followups: "all" to close any existing open followups.
 
 AT THE START of any sales or outreach session:
   Call list-open-followups to see everything due today.
   Filter by company= if working a specific account.
 
-WHEN you have both a CSV email and LinkedIn URL for the same person:
+WHEN you have both an email and a LinkedIn URL for the same person:
   Pass both in one call: { contact: email, also: [linkedin_url] }
-  This guarantees a single merged contact record.
+  This guarantees a single merged contact record regardless of enrichment data coverage.
 
 DO NOT reach out to anyone with do_not_disturb: true.
 DO NOT create duplicate contact lookups — get-contact-info is idempotent.
