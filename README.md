@@ -7,6 +7,8 @@ Your agents' system of record for every contact, conversation and next step.
 
 Give any agent a memory for the people it works with. One install. No forms. No data entry.
 
+If this is useful, [star it](https://github.com/nondual-agents/nondual) — it helps other developers find it.
+
 ---
 
 ## Quick start
@@ -21,7 +23,17 @@ Get a key:
 ```bash
 curl -s -X POST https://api.nondual.cloud/v1/keys \
   -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com"}'
+  -d '{"email":"you@example.com", "requested_by":"agent"}'
+```
+
+Response:
+
+```json
+{
+  "api_key": "nd_xxxxxxxxxxxxxxxxxxxx",
+  "status": "unclaimed",
+  "message": "Key issued. A claim code was sent to you@example.com."
+}
 ```
 
 Or call `get-contact-info` without a key — 3 free lookups per day, no signup.
@@ -88,8 +100,8 @@ npx nondual get-contact-info dario@anthropic.com
 Options:
 
 ```bash
-npx nondual get-contact-info dario@anthropic.com --json     # raw JSON
-npx nondual get-contact-info dario@anthropic.com --enrich false  # workspace-only, no enrichment
+npx nondual get-contact-info dario@anthropic.com --json            # raw JSON
+npx nondual get-contact-info dario@anthropic.com --enrich false    # workspace-only, no enrichment
 ```
 
 ### `nondual record <email>`
@@ -210,6 +222,15 @@ console.log(res.open_followups);               // [{ id, action, due }, ...]
 console.log(res.recommended_next_action);      // "Follow up with a concrete proposal."
 ```
 
+Pass `also` when you have both an email and LinkedIn URL for the same person — guarantees a single merged contact regardless of enrichment data:
+
+```typescript
+const res = await nd.getContactInfo({
+  contact: 'kai@company.com',
+  also: ['https://linkedin.com/in/kuhlig'],
+});
+```
+
 Set `enrich: false` for a fast workspace-only lookup (no external enrichment):
 
 ```typescript
@@ -262,19 +283,68 @@ for (const c of res.contacts) {
 }
 ```
 
+### `nd.imports(input)`
+
+Bulk-upsert contacts, interactions, and follow-ups in one call. Up to 5000 rows.
+
+```typescript
+const res = await nd.imports({ rows: [
+  {
+    email: 'dario@anthropic.com',
+    linkedin_url: 'https://linkedin.com/in/darioamodei',
+    name: 'Dario Amodei',
+    company: 'Anthropic',
+    company_domain: 'anthropic.com',
+    summary: 'Met at AI Summit 2026',
+    channel: 'meeting',
+    occurred_at: '2026-06-15T09:00:00Z',
+    action: 'Send follow-up email',
+    due: '2026-08-01',
+  }
+]});
+
+console.log(res.imported.contacts_created);     // 1
+console.log(res.imported.interactions_created); // 1
+console.log(res.imported.followups_created);    // 1
+```
+
 ---
 
 ## REST API
 
 Base URL: `https://api.nondual.cloud/v1`
 
-Auth: `Authorization: Bearer YOUR_KEY`
+Auth: `Authorization: Bearer YOUR_API_KEY`
 
-### `POST /get-contact-info`
+### `POST /v1/keys` — get a key
+
+```bash
+curl -s -X POST https://api.nondual.cloud/v1/keys \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com", "requested_by":"agent"}'
+```
+
+```json
+{
+  "api_key": "nd_xxxxxxxxxxxxxxxxxxxx",
+  "status": "unclaimed",
+  "message": "Key issued. A claim code was sent to you@example.com."
+}
+```
+
+Claim the key (removes workspace restrictions):
+
+```bash
+curl -s -X POST https://api.nondual.cloud/v1/keys/claim \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com", "otp":"123456"}'
+```
+
+### `POST /v1/get-contact-info`
 
 ```bash
 curl -s -X POST https://api.nondual.cloud/v1/get-contact-info \
-  -H "Authorization: Bearer YOUR_KEY" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"contact": "dario@anthropic.com"}'
 ```
@@ -287,10 +357,9 @@ Response:
     "id": "contact_...",
     "name": "Dario Amodei",
     "do_not_disturb": false,
-    "do_not_disturb_set_at": null,
     "identifiers": {
       "emails": ["dario@anthropic.com"],
-      "linkedin_url": "https://linkedin.com/in/darioamodei",
+      "linkedin_url": "linkedin.com/in/darioamodei",
       "phones": [],
       "handles": []
     },
@@ -306,11 +375,20 @@ Response:
 }
 ```
 
-### `POST /record-contact-interaction`
+Pass `also` to merge an email and LinkedIn URL into one contact:
+
+```bash
+curl -s -X POST https://api.nondual.cloud/v1/get-contact-info \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"contact": "kai@company.com", "also": ["https://linkedin.com/in/kuhlig"]}'
+```
+
+### `POST /v1/record-contact-interaction`
 
 ```bash
 curl -s -X POST https://api.nondual.cloud/v1/record-contact-interaction \
-  -H "Authorization: Bearer YOUR_KEY" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -H "X-Nondual-Agent: my-agent" \
   -H "Content-Type: application/json" \
   -d '{
@@ -323,18 +401,41 @@ curl -s -X POST https://api.nondual.cloud/v1/record-contact-interaction \
   }'
 ```
 
-### `GET /list-open-followups`
+### `GET /v1/list-open-followups`
 
 ```bash
 curl -s "https://api.nondual.cloud/v1/list-open-followups?due_before=2026-08-01" \
-  -H "Authorization: Bearer YOUR_KEY"
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### `GET /get-company-activity?domain=`
+### `GET /v1/get-company-activity?domain=`
 
 ```bash
 curl -s "https://api.nondual.cloud/v1/get-company-activity?domain=anthropic.com" \
-  -H "Authorization: Bearer YOUR_KEY"
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### `POST /v1/imports`
+
+```bash
+curl -s -X POST https://api.nondual.cloud/v1/imports \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rows": [
+      {
+        "email": "dario@anthropic.com",
+        "linkedin_url": "https://linkedin.com/in/darioamodei",
+        "name": "Dario Amodei",
+        "company": "Anthropic",
+        "company_domain": "anthropic.com",
+        "summary": "Met at AI Summit 2026",
+        "channel": "meeting",
+        "action": "Send follow-up email",
+        "due": "2026-08-01"
+      }
+    ]
+  }'
 ```
 
 ---
@@ -343,7 +444,7 @@ curl -s "https://api.nondual.cloud/v1/get-company-activity?domain=anthropic.com"
 
 | Tool | Input | What it does |
 |---|---|---|
-| `get_contact_info` | `contact`, `enrich?` | Full profile + relationship context |
+| `get_contact_info` | `contact`, `enrich?`, `also?` | Full profile + relationship context |
 | `record_contact_interaction` | `contact`, `channel`, `summary`, `followup_action?`, `complete_followups?` | Log interaction, create/close followups |
 | `list_open_followups` | `due_before?`, `owner?`, `company?` | All open followups with contact snippets |
 | `get_company_activity` | `domain` | All contacts + interactions for a company |
@@ -365,9 +466,22 @@ Every agent on your key reads and writes the same relationship.
 
 ---
 
+## Examples
+
+Runnable examples live in [`examples/`](./examples/):
+
+- [`examples/typescript/full-loop.ts`](./examples/typescript/full-loop.ts) — the four-call memory loop
+- [`examples/typescript/csv-import.ts`](./examples/typescript/csv-import.ts) — import a LinkedIn connections export
+- [`examples/python/rest-loop.py`](./examples/python/rest-loop.py) — the same loop in Python via REST
+- [`examples/cursor-rules/`](./examples/cursor-rules/) — drop-in rules for Cursor agents
+
+---
+
 ## Docs
 
-Full reference: [nondual.cloud/docs](https://nondual.cloud/docs)
+- Full API reference: [nondual.cloud/docs](https://nondual.cloud/docs)
+- Agent onboarding doc: [nondual.cloud/agents.md](https://nondual.cloud/agents.md)
+- Source: [github.com/nondual-agents/nondual](https://github.com/nondual-agents/nondual)
 
 ## License
 
