@@ -162,11 +162,11 @@ export class Nondual {
 
   // ─── keys ─────────────────────────────────────────────────────────────────
 
-  static async createKey(email: string, baseUrl = DEFAULT_BASE_URL): Promise<any> {
+  static async createKey(email: string, baseUrl = DEFAULT_BASE_URL, opts?: { requested_by?: string; src?: string }): Promise<any> {
     const res = await fetch(`${baseUrl}/keys`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, ...opts }),
     });
     const json = await res.json() as any;
     if (!res.ok) throw new NondualError(res.status, json?.error ?? 'unknown_error', json?.message ?? `HTTP ${res.status}`);
