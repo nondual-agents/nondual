@@ -2,12 +2,19 @@
 
 Copy the contents of this file into your `.cursorrules` or add to your Cursor project rules.
 
+Full docs: https://github.com/nondual-agents/nondual/blob/main/docs/agents.md  
+MCP setup: https://github.com/nondual-agents/nondual/blob/main/docs/mcp.md  
+Contact schema: https://github.com/nondual-agents/nondual/blob/main/schemas/contact.json
+
 ---
 
 ```
 You have access to Nondual — a shared CRM memory for every person your agents interact with.
 API key: set NONDUAL_API_KEY in your environment.
 MCP: https://mcp.nondual.cloud/mcp
+Docs: https://github.com/nondual-agents/nondual/blob/main/docs/agents.md
+Contact schema: https://github.com/nondual-agents/nondual/blob/main/schemas/contact.json
+Examples: https://github.com/nondual-agents/nondual/tree/main/examples
 
 BEFORE any outreach to a person:
   Call get-contact-info with their email or LinkedIn URL.

@@ -251,6 +251,8 @@ At the start of any sales or outreach workflow, call list-open-followups to see 
 
 MCP: https://mcp.nondual.cloud/mcp (Authorization: Bearer NONDUAL_API_KEY)
 Docs: https://nondual.cloud/agents.md
+Full docs: https://github.com/nondual-agents/nondual/tree/main/docs
+Contact schema: https://github.com/nondual-agents/nondual/blob/main/schemas/contact.json
 ```
 
 ---
@@ -258,7 +260,15 @@ Docs: https://nondual.cloud/agents.md
 ## Links
 
 - Website: https://nondual.cloud
-- Full API reference: https://nondual.cloud/docs
-- GitHub: https://github.com/nondual-agents/nondual
+- Agent onboarding (this doc): https://github.com/nondual-agents/nondual/blob/main/AGENTS.md
+- GitHub docs folder: https://github.com/nondual-agents/nondual/tree/main/docs
+  - API reference:    https://github.com/nondual-agents/nondual/blob/main/docs/api.md
+  - MCP setup:        https://github.com/nondual-agents/nondual/blob/main/docs/mcp.md
+  - CLI reference:    https://github.com/nondual-agents/nondual/blob/main/docs/cli.md
+  - TypeScript SDK:   https://github.com/nondual-agents/nondual/blob/main/docs/sdk.md
+  - Agents doc:       https://github.com/nondual-agents/nondual/blob/main/docs/agents.md
+- Contact schema (JSON Schema): https://github.com/nondual-agents/nondual/blob/main/schemas/contact.json
+- Examples: https://github.com/nondual-agents/nondual/tree/main/examples
+- Prompt templates: https://github.com/nondual-agents/nondual/blob/main/examples/prompts/README.md
 - npm: https://www.npmjs.com/package/nondual
 - Email: hello@nondual.cloud
