@@ -479,9 +479,12 @@ Runnable examples live in [`examples/`](./examples/):
 
 ## Docs
 
-- Full API reference: [nondual.cloud/docs](https://nondual.cloud/docs)
-- Agent onboarding doc: [nondual.cloud/agents.md](https://nondual.cloud/agents.md)
-- Source: [github.com/nondual-agents/nondual](https://github.com/nondual-agents/nondual)
+- [`docs/api.md`](./docs/api.md) — REST API reference
+- [`docs/mcp.md`](./docs/mcp.md) — MCP setup (Cursor, Claude, Hermes)
+- [`docs/cli.md`](./docs/cli.md) — CLI commands and flags
+- [`docs/sdk.md`](./docs/sdk.md) — TypeScript SDK
+- [`docs/agents.md`](./docs/agents.md) — Agent onboarding and prompt templates
+- Live: [nondual.cloud/docs](https://nondual.cloud/docs)
 
 ## License
 
