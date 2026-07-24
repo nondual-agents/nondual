@@ -104,39 +104,39 @@ npx nondual get-contact-info dario@anthropic.com --json            # raw JSON
 npx nondual get-contact-info dario@anthropic.com --enrich false    # workspace-only, no enrichment
 ```
 
-### `nondual record <email>`
+### `nondual record-contact-interaction <email>`
 
 Record an interaction. Optionally create a followup or complete existing ones in the same call.
 
 ```bash
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --channel email \
   --direction outbound \
   --summary "Sent intro about partnership opportunities"
 
 # With full body inline:
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --channel email \
   --direction outbound \
   --summary "Sent intro about partnership opportunities" \
   --details "Hi Dario, I wanted to reach out about..."
 
 # Load body from a file:
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --channel email \
   --direction outbound \
   --summary "Sent intro about partnership opportunities" \
   --details-file ./email-body.txt
 
 # Create a followup in the same call:
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --channel call \
   --summary "Discussed partnership" \
   --followup "Send proposal deck" \
   --due 2026-08-01
 
 # Complete all open followups at the same time:
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --channel email \
   --summary "Sent the proposal" \
   --complete all
@@ -153,24 +153,24 @@ npx nondual record dario@anthropic.com \
 | `--due` | no | ISO date | Due date for the followup |
 | `--complete` | no | `all` or comma-separated IDs | Complete followups in the same call |
 
-### `nondual followups`
+### `nondual list-open-followups`
 
 List open followups with contact snippets. Filter by due date, owner, or company.
 
 ```bash
-npx nondual followups
-npx nondual followups --due-before 2026-08-01
-npx nondual followups --company anthropic.com
-npx nondual followups --json
+npx nondual list-open-followups
+npx nondual list-open-followups --due-before 2026-08-01
+npx nondual list-open-followups --company anthropic.com
+npx nondual list-open-followups --json
 ```
 
-### `nondual company-activity <domain>`
+### `nondual get-company-activity <domain>`
 
 All contacts and recent interactions for a company domain.
 
 ```bash
-npx nondual company-activity anthropic.com
-npx nondual company-activity anthropic.com --json
+npx nondual get-company-activity anthropic.com
+npx nondual get-company-activity anthropic.com --json
 ```
 
 ### `nondual search <query>`

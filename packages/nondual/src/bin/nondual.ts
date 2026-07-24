@@ -155,7 +155,7 @@ async function cmdGetContactInfo(identifier: string, flags: Record<string, strin
 
 async function cmdRecord(args: string[]): Promise<void> {
   const contact = args[0];
-  if (!contact) die('usage: nondual record <email> --channel email --direction outbound --summary "..." [--details "..." | --details-file path] [--followup "..." --due date] [--complete <id|all>]');
+  if (!contact) die('usage: nondual record-contact-interaction <email> --channel email --direction outbound --summary "..." [--details "..." | --details-file path] [--followup "..." --due date] [--complete <id|all>]');
   const flags = parseFlags(args.slice(1));
   if (!flags['channel']) die('--channel required');
   if (!flags['summary']) die('--summary required');
@@ -216,7 +216,7 @@ async function cmdListFollowups(flags: Record<string, string | undefined>): Prom
 }
 
 async function cmdCompanyActivity(domain: string): Promise<void> {
-  if (!domain) die('usage: nondual company-activity <domain>');
+  if (!domain) die('usage: nondual get-company-activity <domain>');
   const client = getClient();
   const data = await client.getCompanyActivity({ domain }) as any;
   if (!isPlainFlag()) { console.log(JSON.stringify(data, null, 2)); return; }

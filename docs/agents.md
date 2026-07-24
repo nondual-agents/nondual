@@ -107,9 +107,9 @@ Restart the MCP host. The four tools appear automatically.
 ```bash
 npx nondual init --agent --email EMAIL   # key returned in JSON
 npx nondual get-contact-info EMAIL_OR_URL
-npx nondual record EMAIL --summary "what happened"
-npx nondual followups
-npx nondual company-activity DOMAIN
+npx nondual record-contact-interaction EMAIL --summary "what happened"
+npx nondual list-open-followups
+npx nondual get-company-activity DOMAIN
 ```
 
 ### TypeScript SDK
@@ -136,7 +136,7 @@ curl -X POST https://api.nondual.cloud/v1/get-contact-info \
 
 ```bash
 npx nondual get-contact-info dario@anthropic.com
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --summary "agent verified the nondual setup"
 npx nondual get-contact-info dario@anthropic.com
 # Interaction appears in the timeline — setup is complete

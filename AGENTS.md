@@ -72,9 +72,9 @@ Until claimed, the key works for contacts you create and for the signup email co
 ```bash
 npx nondual init --agent --email HUMAN_EMAIL
 npx nondual get-contact-info EMAIL_OR_URL
-npx nondual record EMAIL --channel email --summary "what happened"
-npx nondual followups
-npx nondual company-activity DOMAIN
+npx nondual record-contact-interaction EMAIL --channel email --summary "what happened"
+npx nondual list-open-followups
+npx nondual get-company-activity DOMAIN
 ```
 
 **TypeScript SDK:**
@@ -101,8 +101,8 @@ curl -X POST https://api.nondual.cloud/v1/get-contact-info \
 
 ```bash
 npx nondual get-contact-info dario@anthropic.com
-npx nondual record dario@anthropic.com \
-  --channel email --summary "agent verified the nondual setup"
+npx nondual record-contact-interaction dario@anthropic.com \\
+  --summary "agent verified nondual MCP setup"
 ```
 
 You should get a full profile for Dario and a 201 confirming the interaction was recorded.

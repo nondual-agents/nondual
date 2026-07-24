@@ -58,25 +58,25 @@ Flags:
 
 ---
 
-## nondual record \<identifier\>
+## nondual record-contact-interaction \<identifier\>
 
 Record an interaction after outreach. Creates the contact if it doesn't exist yet.
 
 ```bash
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --summary "Sent intro about partnership" \
   --channel email \
   --direction outbound
 
 # With a followup:
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --summary "Discussed partnership on call" \
   --channel call \
   --followup "Send proposal deck" \
   --followup-due 2026-08-01
 
 # Complete all open followups at the same time:
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --summary "Sent the proposal" \
   --channel email \
   --complete all
@@ -97,29 +97,29 @@ npx nondual record dario@anthropic.com \
 
 ---
 
-## nondual followups
+## nondual list-open-followups
 
 List open followups due today. Shows `⛔` for do-not-disturb contacts.
 
 ```bash
-npx nondual followups
-npx nondual followups --due-before 2026-08-01
-npx nondual followups --company anthropic.com
-npx nondual followups --owner sales-agent
-npx nondual followups --json
+npx nondual list-open-followups
+npx nondual list-open-followups --due-before 2026-08-01
+npx nondual list-open-followups --company anthropic.com
+npx nondual list-open-followups --owner sales-agent
+npx nondual list-open-followups --json
 ```
 
 Flags: `--due-before`, `--owner`, `--company`, `--json`
 
 ---
 
-## nondual company-activity \<domain\>
+## nondual get-company-activity \<domain\>
 
 All contacts and recent interactions for a company domain.
 
 ```bash
-npx nondual company-activity anthropic.com
-npx nondual company-activity anthropic.com --json
+npx nondual get-company-activity anthropic.com
+npx nondual get-company-activity anthropic.com --json
 ```
 
 ---
@@ -153,7 +153,7 @@ npx nondual whoami
 
 ```bash
 npx nondual get-contact-info dario@anthropic.com
-npx nondual record dario@anthropic.com \
+npx nondual record-contact-interaction dario@anthropic.com \
   --summary "agent verified the nondual CLI setup"
 npx nondual get-contact-info dario@anthropic.com
 # Interaction appears in the timeline — setup is complete
