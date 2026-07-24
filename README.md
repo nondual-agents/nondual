@@ -1,6 +1,6 @@
 # nondual
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 [![npm](https://img.shields.io/npm/v/nondual)](https://www.npmjs.com/package/nondual)
 [![GitHub stars](https://img.shields.io/github/stars/nondual-agents/nondual)](https://github.com/nondual-agents/nondual/stargazers)

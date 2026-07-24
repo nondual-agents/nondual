@@ -1,6 +1,6 @@
 # Nondual CLI
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 Run commands directly from your terminal or agent shell. No config file needed to start.
 

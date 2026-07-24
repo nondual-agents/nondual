@@ -1,6 +1,6 @@
 # Nondual — Agent Onboarding
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 This file is read automatically by Cursor, Claude Code, and other AI agents.
 It tells you what Nondual does, how to install it, and how to use every tool.

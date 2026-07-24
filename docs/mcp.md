@@ -1,6 +1,6 @@
 # Nondual MCP
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 Add one JSON block to your MCP config. All four tools appear immediately in Cursor, Claude Desktop, Hermes, or any MCP-compatible client.
 

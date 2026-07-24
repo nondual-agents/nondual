@@ -1,7 +1,7 @@
 ---
 name: nondual
 description: >
-  Your agents' system of record for every contact, conversation and next step.
+  The address book for AI agents.
   Get full contact profiles before any outreach. Record every interaction.
   List open followups. Get company-level activity. Shared memory across all
   agents on the same key.
@@ -19,7 +19,7 @@ mcp:
 
 # Nondual
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 ## Setup
 

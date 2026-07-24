@@ -1,7 +1,7 @@
 {
   "name": "nondual",
   "version": "0.3.4",
-  "description": "Your agents' system of record for every contact, conversation and next step.",
+  "description": "The address book for AI agents.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

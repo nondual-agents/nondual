@@ -1,6 +1,6 @@
 # Nondual — Claude Code Skill
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 ## Install
 

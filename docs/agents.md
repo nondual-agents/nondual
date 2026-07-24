@@ -1,6 +1,6 @@
 # Nondual — Agent Onboarding
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 This document covers setup and the four tools. For the full REST reference see [api.md](./api.md).
 

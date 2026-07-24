@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * nondual CLI — v0.3.4
- * Your agents' system of record for every contact, conversation and next step.
+ * The address book for AI agents.
  */
 
 import fs from 'node:fs';
@@ -355,7 +355,7 @@ async function main(): Promise<void> {
       case 'import':             await cmdImport(rest[0] ?? ''); break;
       case 'whoami':             await cmdWhoami(); break;
       default:
-        console.log(`nondual — Your agents' system of record for every contact, conversation and next step.
+        console.log(`nondual — The address book for AI agents.
 
 Usage:
   nondual init                                   Set up your API key (interactive)

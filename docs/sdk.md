@@ -1,6 +1,6 @@
 # Nondual TypeScript SDK
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 Typed methods for every operation. Works in Node.js, Deno, and any TypeScript project.
 

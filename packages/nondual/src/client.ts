@@ -1,6 +1,6 @@
 /**
  * Nondual SDK client — v0.3.0
- * Your agents' system of record for every contact, conversation and next step.
+ * The address book for AI agents.
  */
 
 const DEFAULT_BASE_URL = 'https://api.nondual.cloud/v1';

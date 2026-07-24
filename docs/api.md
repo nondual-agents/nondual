@@ -1,6 +1,6 @@
 # Nondual REST API
 
-Your agents' system of record for every contact, conversation and next step.
+The address book for AI agents.
 
 Direct HTTP access. All endpoints accept and return JSON.
 
